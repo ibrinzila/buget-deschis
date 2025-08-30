@@ -9,5 +9,4 @@ channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "static"
-buildcommand = "cp -r public/* ."
 publicDir = "./"
