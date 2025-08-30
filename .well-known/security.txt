@@ -1,0 +1,27 @@
+Contact: security@cohesionlab.org
+Contact: mailto:security@cohesionlab.org
+Expires: 2026-08-30T23:59:59.000Z
+Encryption: https://cohesionlab.org/public/pgp-key.asc
+Acknowledgments: https://cohesionlab.org/transparency/
+Preferred-Languages: ro, en
+Canonical: https://cohesionlab.org/.well-known/security.txt
+Policy: https://cohesionlab.org/public/security-policy.pdf
+
+# Cohesion Lab Security Contact Information
+# 
+# Cohesion Lab (Laboratorul de Tehnologie Civică și Coeziune Socială)
+# este o instituție privată înregistrată în Republica Moldova care
+# promovează utilizarea responsabilă a tehnologiilor civice.
+#
+# Raportarea vulnerabilităților de securitate:
+# - Email principal: security@cohesionlab.org
+# - Răspuns în maxim 48 de ore
+# - Coordonarea conform standardelor internaționale
+#
+# Pentru alte tipuri de comunicări:
+# - Contact general: contact@cohesionlab.org
+# - Telefon: +373 60 427 339
+#
+# Mulțumiri pentru raportarea responsabilă a vulnerabilităților.
+# Respectăm principiile de divulgare coordonată și recunoaștem
+# contribuțiile comunității de securitate.

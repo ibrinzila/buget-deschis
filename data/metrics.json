@@ -1,0 +1,97 @@
+{
+  "summary": [
+    {
+      "label": "Comunități active",
+      "value": "3",
+      "change": "+2 în Q3 2025",
+      "trend": "positive"
+    },
+    {
+      "label": "Proiecte implementate",
+      "value": "1",
+      "change": "Nou în 2025",
+      "trend": "positive"
+    },
+    {
+      "label": "Participanți formați",
+      "value": "45",
+      "change": "+45 în Q3 2025",
+      "trend": "positive"
+    },
+    {
+      "label": "Instrumente open-source",
+      "value": "2",
+      "change": "În dezvoltare",
+      "trend": "neutral"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "Indicele de Coeziune Socială",
+      "description": "Măsură participarea civică și încrederea comunitară pe o scală de 0-100",
+      "current_value": "68",
+      "target_value": "75",
+      "progress": 91,
+      "last_updated": "2025-08-15"
+    },
+    {
+      "name": "Capacitatea de Acțiune Colectivă",
+      "description": "Evaluează abilitatea comunităților de a se organiza pentru soluționarea problemelor",
+      "current_value": "72",
+      "target_value": "80",
+      "progress": 90,
+      "last_updated": "2025-08-15"
+    },
+    {
+      "name": "Auto-eficacitatea Civică",
+      "description": "Măsoară încrederea cetățenilor în capacitatea lor de a influența deciziile publice",
+      "current_value": "58",
+      "target_value": "70",
+      "progress": 83,
+      "last_updated": "2025-08-15"
+    },
+    {
+      "name": "Utilizarea Tehnologiilor Civice",
+      "description": "Rata de adoptare a instrumentelor digitale pentru participare civică",
+      "current_value": "34%",
+      "target_value": "50%",
+      "progress": 68,
+      "last_updated": "2025-08-20"
+    },
+    {
+      "name": "Transparența Instituțională",
+      "description": "Scorul de transparență bazat pe publicarea datelor și accesibilitatea informațiilor",
+      "current_value": "78",
+      "target_value": "85",
+      "progress": 92,
+      "last_updated": "2025-08-25"
+    },
+    {
+      "name": "Colaborarea Intersectorială",
+      "description": "Numărul de parteneriate active între sectorul civic, public și privat",
+      "current_value": "12",
+      "target_value": "20",
+      "progress": 60,
+      "last_updated": "2025-08-20"
+    },
+    {
+      "name": "Educația Digitală și Etică AI",
+      "description": "Numărul de persoane formate în alfabetizare digitală și etică AI",
+      "current_value": "45",
+      "target_value": "100",
+      "progress": 45,
+      "last_updated": "2025-08-30"
+    },
+    {
+      "name": "Proiecte Open-Source Active",
+      "description": "Numărul de instrumente civice cu cod deschis în dezvoltare sau menținate",
+      "current_value": "2",
+      "target_value": "5",
+      "progress": 40,
+      "last_updated": "2025-08-25"
+    }
+  ],
+  "last_update": "2025-08-30",
+  "next_update": "2025-11-30",
+  "methodology_url": "/public/metodologie-masurare-impact.pdf"
+}
