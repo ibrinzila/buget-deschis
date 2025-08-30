@@ -1,0 +1,51 @@
+Context:
+Construiești un site static pentru „Cohesion Lab” (Instituția Privată „Laboratorul de Tehnologie Civică și Coeziune Socială”).
+Domeniul primar: cohesionlab.org. Domeniul tehnic: cohesionlab.tech.
+
+Cerințe tehnice:
+- Stack: HTML + CSS + JS (fără framework). Fără build tools.
+- Structură fișiere EXACT ca mai jos (creează-le toate):
+  /index.html
+  /impact/index.html
+  /transparency/index.html
+  /assets/styles.css
+  /assets/logo.svg
+  /assets/favicon.svg
+  /data/metrics.json
+  /.well-known/security.txt
+  /robots.txt
+  /sitemap.xml
+  /_headers
+  /public/.keep
+- Respectă accesibilitatea (aria-label pe nav, contraste OK, semantic tags).
+- Responsive: mobil first; grid pentru secțiunea „highlights”.
+- Impact page: JS simplu care citește /data/metrics.json și afișează tabel.
+- Transparență: listă linkuri către fișiere din /public (folder gol la început).
+- SEO: title/description, og:tags, canonical.
+- Securitate: _headers cu HSTS, CSP, etc.
+- Roboti: robots.txt + sitemap.
+- security.txt completat cu Contact: security@cohesionlab.org.
+
+Design & conținut:
+- Hero text: „Tehnologie civică pentru capacitatea de acțiune și coeziune socială.”
+- Butoane: „Vezi indicatorii”, „Transparență”.
+- Carduri: Open-source, Măsurare, Etică & date.
+- Footer: © {an curent} Cohesion Lab.
+
+Livrabile în Replit:
+1) Creează toate fișierele și conținutul conform cerințelor.
+2) Rulează un server static pentru preview (de ex. python -m http.server).
+3) Fă un ZIP de export cu proiectul complet.
+4) Pregătește un README.md cu instrucțiuni de publicare pe Cloudflare Pages:
+   - „Upload assets” sau „Connect to Git”.
+   - Output dir: /
+   - Custom domains: cohesionlab.org (apex + www).
+   - Redirect .tech → .org (prin Cloudflare Redirect Rules).
+5) Respectă următoarele criterii de acceptare:
+   - Lighthouse mobile Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95, SEO ≥ 95.
+   - Fără erori în consola browserului.
+   - Trecere CSP (nu încărca resurse externe).
+   - HTML valid (validator.w3.org).
+
+După finalizare:
+- Afișează structura fișierelor, URL de preview Replit și sumarul pașilor de publicare.
