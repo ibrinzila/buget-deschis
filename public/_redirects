@@ -1,0 +1,43 @@
+# Redirects și rewrite rules pentru Cohesion Lab
+# Static site deployment configuration
+
+# Handle subdirectory routing for multi-page site
+# Ensure that requests to directories serve the index.html file
+
+# Root domain redirects
+/impact /impact/ 301
+/transparency /transparency/ 301
+
+# Directory index serving
+/impact/ /impact/index.html 200
+/transparency/ /transparency/index.html 200
+
+# Handle missing trailing slashes
+/impact/* /impact/:splat 301
+/transparency/* /transparency/:splat 301
+
+# Fallback for SPA-like behavior on client-side routing
+# This ensures that direct navigation to subpages works
+/impact/index.html /impact/ 301
+/transparency/index.html /transparency/ 301
+
+# Handle file extensions for clean URLs
+/impact.html /impact/ 301
+/transparency.html /transparency/ 301
+
+# Asset handling - ensure assets are served correctly
+/assets/* /assets/:splat 200
+/data/* /data/:splat 200
+
+# Security and well-known files
+/.well-known/* /.well-known/:splat 200
+
+# Favicon handling
+/favicon.ico /assets/favicon.svg 301
+/favicon.png /assets/favicon.svg 301
+
+# Handle old URLs or common misconfigurations
+/index.html / 301
+
+# 404 fallback - serve main page for unmatched routes
+/* / 404
