@@ -1,0 +1,59 @@
+2025-09-02T04:35:33.246891Z	Cloning repository...
+2025-09-02T04:35:34.273523Z	From https://github.com/ibrinzila/FilantropieMoldova
+2025-09-02T04:35:34.273934Z	 * branch            6f3237b6d1f1e1aba4c749893d209f4f65201ae8 -> FETCH_HEAD
+2025-09-02T04:35:34.274035Z	
+2025-09-02T04:35:34.3134Z	HEAD is now at 6f3237b Integrate forms with external services for improved functionality
+2025-09-02T04:35:34.313797Z	
+2025-09-02T04:35:34.393722Z	
+2025-09-02T04:35:34.394141Z	Using v2 root directory strategy
+2025-09-02T04:35:34.414326Z	Success: Finished cloning repository files
+2025-09-02T04:35:36.1681Z	Checking for configuration in a Wrangler configuration file (BETA)
+2025-09-02T04:35:36.168626Z	
+2025-09-02T04:35:37.278416Z	No wrangler.toml file found. Continuing.
+2025-09-02T04:35:37.348857Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2025-09-02T04:35:37.349393Z	Installing project dependencies: npm clean-install --progress=false
+2025-09-02T04:35:41.373765Z	npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2025-09-02T04:35:41.390064Z	npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2025-09-02T04:35:46.138949Z	
+2025-09-02T04:35:46.139299Z	added 481 packages, and audited 482 packages in 8s
+2025-09-02T04:35:46.139771Z	
+2025-09-02T04:35:46.139883Z	64 packages are looking for funding
+2025-09-02T04:35:46.140009Z	  run `npm fund` for details
+2025-09-02T04:35:46.163639Z	
+2025-09-02T04:35:46.164055Z	11 vulnerabilities (3 low, 8 moderate)
+2025-09-02T04:35:46.164338Z	
+2025-09-02T04:35:46.164595Z	To address issues that do not require attention, run:
+2025-09-02T04:35:46.164856Z	  npm audit fix
+2025-09-02T04:35:46.165301Z	
+2025-09-02T04:35:46.16554Z	To address all issues (including breaking changes), run:
+2025-09-02T04:35:46.165659Z	  npm audit fix --force
+2025-09-02T04:35:46.165839Z	
+2025-09-02T04:35:46.166227Z	Run `npm audit` for details.
+2025-09-02T04:35:46.193524Z	Executing user command: npx vite build
+2025-09-02T04:35:47.098391Z	[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+2025-09-02T04:35:47.151547Z	transforming...
+2025-09-02T04:35:47.494122Z	Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+2025-09-02T04:35:47.494413Z	  npx update-browserslist-db@latest
+2025-09-02T04:35:47.494562Z	  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2025-09-02T04:35:50.185645Z	[32m✓[39m 1686 modules transformed.
+2025-09-02T04:35:50.361071Z	rendering chunks...
+2025-09-02T04:35:50.368391Z	computing gzip size...
+2025-09-02T04:35:50.378965Z	[2m../dist/public/[22m[32mindex.html                 [39m[1m[2m  2.20 kB[22m[1m[22m[2m │ gzip:   0.86 kB[22m
+2025-09-02T04:35:50.37933Z	[2m../dist/public/[22m[2massets/[22m[35mindex-CDAEWYkA.css  [39m[1m[2m 62.69 kB[22m[1m[22m[2m │ gzip:  10.95 kB[22m
+2025-09-02T04:35:50.379609Z	[2m../dist/public/[22m[2massets/[22m[36mindex-LiNG25f1.js   [39m[1m[2m343.09 kB[22m[1m[22m[2m │ gzip: 107.38 kB[22m
+2025-09-02T04:35:50.379919Z	[32m✓ built in 3.26s[39m
+2025-09-02T04:35:50.4349Z	Finished
+2025-09-02T04:35:51.34504Z	Checking for configuration in a Wrangler configuration file (BETA)
+2025-09-02T04:35:51.345922Z	
+2025-09-02T04:35:52.450054Z	No wrangler.toml file found. Continuing.
+2025-09-02T04:35:52.450727Z	Note: No functions dir at /functions found. Skipping.
+2025-09-02T04:35:52.450867Z	Validating asset output directory
+2025-09-02T04:35:55.148897Z	Deploying your site to Cloudflare's global network...
+2025-09-02T04:35:57.350802Z	Uploading... (7/9)
+2025-09-02T04:35:57.871107Z	Uploading... (8/9)
+2025-09-02T04:35:58.569422Z	Uploading... (9/9)
+2025-09-02T04:35:58.569716Z	✨ Success! Uploaded 2 files (7 already uploaded) (1.54 sec)
+2025-09-02T04:35:58.569905Z	
+2025-09-02T04:35:59.035848Z	✨ Upload complete!
+2025-09-02T04:36:02.886717Z	Success: Assets published!
+2025-09-02T04:36:04.546677Z	Success: Your site was deployed!
