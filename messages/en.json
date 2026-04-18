@@ -8,236 +8,323 @@
   },
   "home": {
     "hero": {
-      "badge": "Open Data • OCDS • Fiscal Data Package",
-      "title": "Where does Moldova's public money go?",
-      "subtitle": "Explore the state budget, public procurement, and government contracts — all in one place, continuously updated and completely free.",
-      "ctaBudget": "Explore Budget",
-      "ctaProcurement": "Explore Procurement",
-      "ctaData": "Download Data",
-      "lastUpdated": "Updated"
+      "eyebrow": "Vol. 06 · Ed.",
+      "live": "MTender live",
+      "titlePre": "Where do",
+      "titleEm": "Moldova's 100 billion",
+      "titlePost": "go?",
+      "subtitle": "State budget, public procurement and government contracts — all in one place, updated daily, completely free.",
+      "subtitleEm": "January 2024 – December 2024.",
+      "ctaBudget": "Explore the budget →",
+      "ctaProcurement": "Search procurement",
+      "asideEyebrow": "2024 budget at a glance",
+      "asideEuro": "≈ €5.1 bn · 38,000 lei per citizen",
+      "kpiExecuted": "Executed",
+      "kpiExecutedSub": "93.1% of approved",
+      "kpiProcurement": "Procurement 2024",
+      "kpiProcurementSub": "112,380 procedures",
+      "kpiObi": "Open Budget Index",
+      "kpiObiSub": "5th worldwide ↑",
+      "kpiEu": "EU Funds",
+      "kpiEuSub": "↑ 20.5% vs 2023"
     },
-    "stats": {
-      "title": "Moldova by the Numbers",
-      "budget2024": "State Budget 2024",
-      "procurement": "Procurement Volume 2024",
-      "obsScore": "Transparency Score",
-      "obsRank": "globally",
-      "procedures": "MTender Procedures",
-      "executionRate": "Budget Execution 2024"
+    "treemap": {
+      "eyebrow": "Budget composition",
+      "titlePre": "Each rectangle is a sector. Size",
+      "titleEm": "is your money",
+      "titlePost": ".",
+      "lead": "COFOG classification (United Nations). 11 functional sectors. Three of them — Social Protection, Education and Healthcare — absorb 62% of the 2024 budget.",
+      "hint": "→ Hover a sector for details",
+      "approved": "APPROVED",
+      "executed": "EXECUTED",
+      "perCapita": "per citizen",
+      "ofBudget": "of budget"
     },
-    "features": {
-      "title": "What you can do on this platform",
-      "subtitle": "Tools for citizens, journalists, and researchers",
+    "trend": {
+      "eyebrow": "Trend · 2019–2024",
+      "titlePre": "The budget grew by",
+      "titleEm": "61%",
+      "titlePost": "in six years.",
+      "lead": "From 62.3 to 100.0 billion MDL in nominal terms. EU funds grew 4.5× in the same period, signalling intensified access to European financing.",
+      "approved": "Approved",
+      "executed": "Executed",
+      "euFunds": "EU Funds",
+      "annotationTitle": "2022: EU Candidacy",
+      "annotationSub": "Accession funds accelerate"
+    },
+    "tools": {
+      "eyebrow": "Tools",
+      "title": "What can you do with platform data?",
+      "subtitle": "For curious citizens, journalists, researchers and anyone who wants to understand how public money is spent.",
+      "open": "Open →",
+      "new": "NEW",
       "budget": {
-        "title": "Budget Explorer",
-        "desc": "Visualize budget allocations by sector, track trends from 2019 to present, and compare approved versus executed budgets."
+        "title": "Budget explorer",
+        "desc": "Visualize sector allocations, compare approved vs executed, track trends from 2019 to now."
       },
       "procurement": {
-        "title": "Public Procurement",
-        "desc": "Search and analyze procedures from MTender — active tenders, awarded contracts, contracting authorities, and suppliers."
+        "title": "Public procurement",
+        "desc": "Search across 385K+ MTender procedures. Filter by authority, sector, status, method."
       },
-      "openData": {
-        "title": "Open Data",
-        "desc": "Download raw data in CSV, JSON, or OCDS format. Documented public API for integration with other systems."
+      "data": {
+        "title": "Open Data API",
+        "desc": "CSV, JSON, OCDS 1.1. Documented public API. CC0 licence — public domain."
       },
-      "alerts": {
-        "title": "Alerts & Monitoring",
-        "desc": "Subscribe to alerts for new tenders in your areas of interest or relevant budget changes."
+      "methodology": {
+        "title": "Methodology",
+        "desc": "Four official sources, zero scraping. COFOG functional classification, OCDS 1.1 standard."
       }
     },
+    "citizen": {
+      "eyebrow": "§05 · Your share",
+      "titlePre": "If you earn",
+      "suffix": "lei",
+      "titlePost": "per month...",
+      "lead": "...you contribute roughly {amount} lei per year to Moldova's budget, through income tax, social contributions and VAT.",
+      "intro": "Here's where your money goes, proportional to the 2024 budget:",
+      "income": "Net monthly income (lei)",
+      "annual": "Annual contribution ≈",
+      "estimated": "ESTIMATED",
+      "disclaimer": "* Rough estimate: 18% income tax + contributions + 10% consumption (VAT). For exact calculations consult an accountant.",
+      "download": "↓ Download your receipt (PDF)"
+    },
     "highlights": {
-      "title": "Recent Highlights",
-      "budgetGrowth": "Budget growth 2019–2024",
-      "budgetGrowthDesc": "Moldova's state budget grew from 62 bn MDL in 2019 to 100 bn MDL in 2024, a 61% increase in nominal terms.",
-      "obsImprovement": "OBS Score: from 58 to 81",
-      "obsImprovementDesc": "Moldova rose from 47th to 5th place globally in the Open Budget Survey between 2017 and 2023.",
-      "mtender": "385K+ procedures in MTender",
-      "mtenderDesc": "From 2018 to 2024, the MTender platform processed over 385,000 procedures worth a total of 113 bn MDL."
+      "eyebrow": "Takeaways",
+      "title": "Three figures that define fiscal year 2024.",
+      "one": {
+        "stat": "+61%",
+        "label": "Budget growth 2019→2024",
+        "body": "From 62.3 to 100.0 bn MDL. In real terms, adjusted for inflation, growth is around 28%."
+      },
+      "two": {
+        "stat": "81/100",
+        "label": "Open Budget Survey 2023 score",
+        "body": "Moldova climbed from 47th to 5th globally between 2017 and 2023. Only Eastern-European country in the top 5."
+      },
+      "three": {
+        "stat": "385K",
+        "label": "MTender procedures 2018–2024",
+        "body": "Cumulative value: 113 bn MDL. Competitive rate rose from 61% (2018) to 74% (2024)."
+      }
     },
     "cta": {
-      "title": "This platform is open source",
-      "subtitle": "Source code is available on GitHub under the EUPL-1.2 license. Contributions are welcome.",
-      "github": "Source Code on GitHub",
-      "methodology": "Methodology & Sources"
+      "eyebrow": "Open-source platform",
+      "title": "Code is public, data is CC0. Contribute, copy, remix.",
+      "github": "GitHub →",
+      "methodology": "Methodology"
     }
   },
   "budget": {
-    "title": "Budget Explorer",
-    "subtitle": "Analyze budget allocations by functional sector, track trends, and compare approved versus executed budgets.",
-    "selectYear": "Select Year",
+    "kicker": "Platform / §02 · Budget",
+    "titlePre": "Explore",
+    "titleEm": "every leu",
+    "titlePost": "of Moldova.",
+    "subtitle": "COFOG classification. Approved vs revised vs executed. 11 sectors, 6 years of history, UN functional classification.",
+    "fiscalYear": "Fiscal year",
     "viewType": {
-      "label": "View Type",
-      "approved": "Approved Budget",
-      "revised": "Revised Budget",
+      "label": "View type",
+      "approved": "Approved",
+      "revised": "Revised",
       "actual": "Executed"
     },
     "summary": {
-      "total": "Total Budget",
-      "execution": "Execution Rate",
-      "topSector": "Top Sector",
-      "vsLastYear": "vs. 2023"
+      "total": "Total approved",
+      "totalSub": "↑ 7.4% vs 2023",
+      "executed": "Executed",
+      "executedSub": "execution rate",
+      "topSector": "Top sector",
+      "topSectorSub": "of budget",
+      "euFunds": "EU Funds",
+      "euFundsSub": "↑ 20.5% vs 2023",
+      "perCapita": "Per citizen",
+      "perCapitaSub": "at 2.6M residents",
+      "unit": "bn MDL"
     },
-    "treemap": {
-      "title": "Distribution by Sector",
-      "subtitle": "Click on a sector for details",
-      "tooltip": {
-        "approved": "Approved",
-        "actual": "Executed",
-        "share": "Share"
-      }
+    "composition": {
+      "eyebrow": "Sector distribution",
+      "title": "Functional composition"
     },
-    "trend": {
-      "title": "Budget Trend 2019–2024",
-      "subtitle": "Billions MDL",
-      "approved": "Approved Budget",
-      "actual": "Executed",
-      "euFunds": "EU Funds"
+    "detail": {
+      "allocated": "Allocated",
+      "ofBudget": "of budget",
+      "executed": "Executed",
+      "executionRate": "Execution rate",
+      "trend": "Trend 2019 → 2024",
+      "subCategories": "See all subcategories →",
+      "downloadCsv": "↓ CSV sector",
+      "unit": "mil MDL"
     },
     "table": {
-      "title": "Sector Breakdown",
+      "eyebrow": "Detailed table",
+      "title": "All data, all sectors.",
+      "cofog": "COFOG",
       "sector": "Sector",
-      "approved": "Approved (mil. MDL)",
-      "actual": "Executed (mil. MDL)",
+      "approved": "Approved",
+      "executed": "Executed",
       "execution": "Execution",
-      "share": "Share"
+      "share": "Share",
+      "total": "Total"
     },
-    "download": "Download CSV",
-    "source": "Source: Ministry of Finance of the Republic of Moldova, World Bank BOOST"
+    "actions": {
+      "csv": "↓ CSV",
+      "json": "↓ JSON",
+      "share": "Share ↗"
+    },
+    "source": "Source: Ministry of Finance of Moldova · World Bank BOOST · Updated monthly"
   },
   "procurement": {
-    "title": "Public Procurement",
-    "subtitle": "Data from MTender platform — the national e-procurement system, compliant with OCDS 1.1.",
-    "search": {
-      "placeholder": "Search tenders, authorities, suppliers…",
-      "button": "Search",
-      "clear": "Clear"
-    },
-    "filters": {
-      "title": "Filters",
-      "sector": "Sector",
-      "allSectors": "All Sectors",
-      "status": "Status",
-      "allStatuses": "All Statuses",
-      "method": "Procedure",
-      "allMethods": "All Procedures"
-    },
+    "kicker": "Platform / §03 · Procurement",
+    "titlePre": "Who buys,",
+    "titleEm": "from whom",
+    "titlePost": ", with what money?",
+    "subtitle": "Real-time data from MTender. 112,380 procedures in 2024. OCDS 1.1 standard — the same used by the UK, Ukraine and Mexico.",
     "stats": {
-      "total": "Total Procedures",
-      "active": "Active",
+      "procedures": "Procedures",
+      "proceduresSub": "year 2024",
+      "active": "Active now",
+      "activeSub": "closing in 30 days",
       "awarded": "Awarded",
+      "awardedSub": "contracts signed",
       "cancelled": "Cancelled",
-      "volume": "Total Volume",
-      "avgValue": "Avg. Contract Value",
-      "competitive": "Competitive Rate"
+      "cancelledSub": "1.9% of total",
+      "volume": "Total volume",
+      "volumeSub": "MDL · 2024",
+      "competitive": "Competitive rate",
+      "competitiveSub": "≥ 2 bidders"
+    },
+    "flag": {
+      "eyebrow": "Auto-flagged",
+      "title": "{count} risky procedures in current results",
+      "desc": "Single bidder, high-value direct procurement, or low competition (≤2 bidders on contracts > 20M).",
+      "cta": "Show only these →"
+    },
+    "search": {
+      "placeholder": "Search by object, contracting authority, supplier…",
+      "allStatuses": "All statuses",
+      "allSectors": "All sectors",
+      "reset": "Reset",
+      "results": "results of",
+      "totalVolume": "Total volume:",
+      "million": "mil MDL"
     },
     "table": {
-      "id": "Procedure ID",
-      "title": "Subject",
-      "authority": "Contracting Authority",
-      "value": "Value (MDL)",
-      "method": "Procedure",
+      "id": "ID",
+      "object": "Object",
+      "authority": "Authority",
+      "value": "Value",
+      "method": "Method",
       "status": "Status",
-      "date": "Published",
-      "bids": "Bids",
-      "winner": "Winner"
+      "date": "Date",
+      "bids": "Bidders"
     },
     "status": {
-      "active": "Active",
-      "awarded": "Awarded",
-      "cancelled": "Cancelled",
-      "complete": "Complete"
+      "active": "ACTIVE",
+      "awarded": "AWARDED",
+      "cancelled": "CANCELLED"
     },
     "method": {
-      "open": "Open Tender",
-      "limited": "Limited Tender",
-      "direct": "Direct Purchase"
+      "open": "OPEN",
+      "direct": "DIRECT",
+      "limited": "LIMITED"
     },
     "chart": {
-      "title": "Procurement Volume by Sector",
-      "volume": "Volume (mil. MDL)",
-      "count": "No. Procedures"
+      "eyebrow": "Volume by sector",
+      "title": "Transport and Healthcare buy the most in 2024.",
+      "procedures": "procedures"
     },
-    "noResults": "No results found for your search.",
-    "showing": "Showing",
-    "of": "of",
-    "results": "results",
-    "source": "Source: MTender – Public Procurement System of the Republic of Moldova (OCDS 1.1)"
+    "source": "Source: MTender API (OCDS 1.1) · Updated daily at 04:00 EEST"
   },
   "about": {
-    "title": "About the Platform",
-    "subtitle": "Open Budget Moldova is an initiative of Cohesion Lab — Laboratory for Civic Technology and Social Cohesion.",
+    "kicker": "Platform / §04 · About",
+    "titlePre": "Why budget",
+    "titleEm": "transparency",
+    "titlePost": "isn't a luxury.",
+    "subtitle": "It's a fundamental right. Every citizen pays for this budget — through tax, through VAT, through work. It's elementary to know where the money goes.",
+    "ctaMethodology": "Read the methodology →",
+    "ctaCohesion": "Cohesion Lab ↗",
     "mission": {
-      "title": "Mission",
-      "text": "We believe budget transparency is not a luxury — it is a fundamental right. Our platform makes budget and public procurement data accessible to any citizen, journalist, or researcher, without technical or legal barriers."
+      "eyebrow": "Mission",
+      "quote": "\"We believe public data belongs to the public. The platform makes budget and procurement data accessible to any citizen, journalist or researcher — without technical or legal barriers.\"",
+      "author": "— The Cohesion Lab Team, 2024"
     },
-    "dataSource": {
-      "title": "Data Sources",
+    "sources": {
+      "eyebrow": "Data sources",
+      "title": "Four official sources, zero scraping.",
       "mtender": {
         "title": "MTender",
-        "desc": "National e-procurement system, OCDS 1.1 compliant. Daily updates via official API."
+        "site": "e-procurement.gov.md",
+        "desc": "National electronic procurement system. OCDS 1.1 compliance. Daily updates via official API.",
+        "format": "JSON, XML, CSV"
       },
       "mof": {
         "title": "Ministry of Finance",
-        "desc": "Monthly budget execution data, state budget law, and Citizens' Budget."
+        "site": "mf.gov.md",
+        "desc": "Monthly budget execution data, State Budget Law, Citizen's Budget.",
+        "format": "PDF, XLSX → parsed"
       },
       "boost": {
         "title": "BOOST Moldova",
-        "desc": "World Bank public expenditure database with multidimensional classification."
+        "site": "datacatalog.worldbank.org",
+        "desc": "World Bank public expenditure database with multidimensional classification.",
+        "format": "CSV, STATA"
       },
       "ccrm": {
         "title": "Court of Accounts",
-        "desc": "Financial and compliance audit reports for public institutions."
+        "site": "ccrm.md",
+        "desc": "Financial and compliance audit reports for public institutions.",
+        "format": "PDF → extracted"
       }
     },
     "methodology": {
-      "title": "Methodology",
-      "text": "Data is collected via the MTender API and processed to ensure consistency and accuracy. Budget classification follows the UN COFOG standard (Classification of the Functions of Government). Procurement data complies with the OCDS 1.1 standard (Open Contracting Data Standard)."
+      "eyebrow": "Methodology",
+      "title": "How we process the data.",
+      "step1Title": "Collection",
+      "step1": "Data is collected automatically via official APIs. No scraping — only agreed sources.",
+      "step2Title": "Normalization",
+      "step2": "COFOG (UN) functional classification. Current MDL, no inflation adjustment.",
+      "step3Title": "Validation",
+      "step3": "Sums cross-checked with Court of Accounts reports. Discrepancies > 1% are flagged publicly.",
+      "step4Title": "Publication",
+      "step4": "CC0 licence. Documented public API. Zero authentication required to read."
     },
     "openSource": {
-      "title": "Open Source",
-      "text": "The platform source code is published on GitHub under the EUPL-1.2 (European Union Public Licence). Data is available under CC0 (public domain). Contributions are welcome.",
-      "github": "GitHub Repository",
-      "license": "EUPL-1.2 License"
-    },
-    "contact": {
-      "title": "Contact",
-      "email": "contact@cohesionlab.org",
-      "website": "cohesionlab.org"
-    },
-    "partners": {
-      "title": "Partners & Standards"
+      "eyebrow": "Open Source",
+      "title": "All the code, all the data.",
+      "body": "The platform source is published on GitHub under EUPL-1.2 (European Union Public Licence). Data — under CC0. Contributions are welcome.",
+      "github": "GitHub · buget-deschis",
+      "license": "EUPL-1.2 licence",
+      "issues": "Issues & roadmap"
     }
   },
   "common": {
     "loading": "Loading…",
     "error": "Error loading data",
     "noData": "No data available",
-    "millions": "mil.",
-    "billions": "bn.",
-    "mdl": "MDL",
-    "year": "Year",
-    "backToTop": "Back to top",
-    "learnMore": "Learn more",
-    "viewAll": "View all",
-    "download": "Download",
-    "share": "Share",
-    "source": "Source"
+    "millions": "mil",
+    "billions": "bn",
+    "mdl": "MDL"
   },
   "footer": {
-    "description": "Budget transparency platform for Moldova, built by Cohesion Lab.",
+    "tagline": "Where does Moldovans' money go?",
+    "description": "Independent budget transparency platform. Official data from MTender, Ministry of Finance, World Bank BOOST.",
+    "columns": {
+      "explore": "Explore",
+      "data": "Data",
+      "project": "Project"
+    },
     "links": {
-      "budget": "Budget",
+      "budget": "State budget",
       "procurement": "Procurement",
-      "openData": "Open Data",
-      "about": "About",
+      "sectors": "Sectors",
+      "authorities": "Authorities",
       "methodology": "Methodology",
-      "github": "GitHub"
+      "about": "About"
     },
     "legal": {
-      "license": "EUPL-1.2 License",
-      "data": "Data: CC0",
-      "privacy": "Privacy"
+      "license": "EUPL-1.2",
+      "data": "CC0 Data"
     },
-    "copyright": "© 2025 Cohesion Lab. Open source under EUPL-1.2."
+    "copyright": "© 2025 · COHESION LAB · BUGET.COHESIONLAB.ORG",
+    "updatedAt": "Updated: 2026-04-18 · 14:22 EEST"
   }
 }

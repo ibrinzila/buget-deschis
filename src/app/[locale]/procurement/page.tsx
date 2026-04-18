@@ -1,319 +1,573 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
-import dynamic from 'next/dynamic';
-import { Search, X, Filter, ShoppingCart, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
-import {
-  TENDERS,
-  PROCUREMENT_STATS,
-  PROCUREMENT_SECTORS,
-  searchTenders,
-} from '@/lib/procurement-data';
+import { useMemo, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
+import { TENDERS, PROCUREMENT_STATS, PROCUREMENT_SECTORS, searchTenders } from '@/lib/procurement-data';
 import type { Tender } from '@/lib/types';
-import Badge from '@/components/ui/Badge';
-import { getStatusColor, getMethodColor } from '@/lib/utils';
 
-const ProcurementBarChart = dynamic(() => import('@/components/charts/ProcurementBarChart'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[340px] animate-pulse bg-gray-100 rounded-xl" />
-  ),
-});
-
-function StatusBadge({ status }: { status: Tender['status'] }) {
-  const t = useTranslations('procurement.status');
-  const variantMap: Record<Tender['status'], 'success' | 'info' | 'danger' | 'neutral'> = {
-    active: 'info',
-    awarded: 'success',
-    cancelled: 'danger',
-    complete: 'neutral',
-  };
-  return <Badge variant={variantMap[status]}>{t(status)}</Badge>;
+function fmtNum(n: number) {
+  return new Intl.NumberFormat('ro-MD', { maximumFractionDigits: 0 }).format(n);
 }
 
-function MethodBadge({ method }: { method: Tender['method'] }) {
-  const t = useTranslations('procurement.method');
-  const variantMap: Record<Tender['method'], 'success' | 'warning' | 'danger'> = {
-    open: 'success',
-    limited: 'warning',
-    direct: 'danger',
-  };
-  return <Badge variant={variantMap[method]}>{t(method)}</Badge>;
+function tenderTitle(t: Tender, locale: string) {
+  if (locale === 'ru' && t.titleRu) return t.titleRu;
+  return t.title;
 }
 
-function TenderRow({ tender }: { tender: Tender }) {
-  const [expanded, setExpanded] = useState(false);
+function isFlagged(t: Tender): boolean {
+  if (t.method === 'direct' && t.value > 20_000_000) return true;
+  if ((t.bids ?? 0) === 1 && t.status === 'awarded') return true;
+  if (t.value > 20_000_000 && (t.bids ?? 0) <= 2) return true;
+  return false;
+}
 
+function Eyebrow({ num, children }: { num: string; children: React.ReactNode }) {
   return (
-    <>
-      <tr
-        className="hover:bg-gray-50 transition-colors cursor-pointer"
-        onClick={() => setExpanded(!expanded)}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+      <span
+        className="mono"
+        style={{
+          fontSize: '11px',
+          background: 'var(--ink)',
+          color: 'var(--paper)',
+          padding: '2px 8px',
+          letterSpacing: '0.1em',
+        }}
       >
-        <td className="px-4 py-3">
-          <div className="font-mono text-xs text-blue-600 hover:underline">{tender.id.split('-').slice(-1)[0]}</div>
-        </td>
-        <td className="px-4 py-3 max-w-xs">
-          <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug">
-            {tender.title}
-          </p>
-        </td>
-        <td className="px-4 py-3">
-          <p className="text-sm text-gray-700">{tender.authority}</p>
-        </td>
-        <td className="px-4 py-3 text-right">
-          <span className="text-sm font-mono tabular-nums text-gray-900">
-            {(tender.value / 1_000_000).toFixed(2)} mil.
-          </span>
-        </td>
-        <td className="px-4 py-3">
-          <MethodBadge method={tender.method} />
-        </td>
-        <td className="px-4 py-3">
-          <StatusBadge status={tender.status} />
-        </td>
-        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-          {tender.publishedDate}
-        </td>
-        <td className="px-4 py-3 text-center text-sm text-gray-500">
-          {tender.bids ?? '—'}
-        </td>
-        <td className="px-4 py-3">
-          {expanded ? (
-            <ChevronUp size={16} className="text-gray-400" />
-          ) : (
-            <ChevronDown size={16} className="text-gray-400" />
-          )}
-        </td>
-      </tr>
-      {expanded && (
-        <tr className="bg-blue-50/40">
-          <td colSpan={9} className="px-6 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">OCID</p>
-                <p className="font-mono text-gray-800 text-xs">{tender.ocid}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Sector</p>
-                <p className="text-gray-800">{tender.sector}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Termen limită</p>
-                <p className="text-gray-800">{tender.deadlineDate}</p>
-              </div>
-              {tender.winner && (
-                <div>
-                  <p className="text-xs text-gray-500 mb-0.5">Câștigător</p>
-                  <p className="font-medium text-emerald-700">{tender.winner}</p>
-                </div>
-              )}
-              <div className="sm:col-span-2">
-                <p className="text-xs text-gray-500 mb-0.5">Valoare exactă</p>
-                <p className="font-mono tabular-nums text-gray-800">
-                  {tender.value.toLocaleString('ro-MD')} MDL
-                </p>
-              </div>
-            </div>
-            <div className="mt-3">
-              <a
-                href={`https://mtender.gov.md/en/procedures/${tender.ocid}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink size={12} />
-                Vizualizați pe MTender
-              </a>
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
+        {num}
+      </span>
+      <span style={{ flex: 1, height: '1px', background: 'var(--rule)' }} />
+      <span
+        className="mono"
+        style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-3)' }}
+      >
+        {children}
+      </span>
+    </div>
   );
 }
 
 export default function ProcurementPage() {
   const t = useTranslations('procurement');
-  const [query, setQuery] = useState('');
-  const [sector, setSector] = useState('all');
-  const [status, setStatus] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
+  const locale = useLocale();
 
-  const results = useMemo(
-    () => searchTenders(query, sector, status),
-    [query, sector, status]
-  );
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState<'all' | 'active' | 'awarded' | 'cancelled'>('all');
+  const [sector, setSector] = useState<string>('all');
+  const [onlyFlagged, setOnlyFlagged] = useState(false);
 
   const stats = PROCUREMENT_STATS;
 
+  const baseResults = useMemo(() => searchTenders(q, sector, status), [q, sector, status]);
+  const results = useMemo(
+    () => (onlyFlagged ? baseResults.filter(isFlagged) : baseResults),
+    [baseResults, onlyFlagged]
+  );
+
+  const flaggedCount = useMemo(() => baseResults.filter(isFlagged).length, [baseResults]);
+
+  const totalResultsVolume = useMemo(
+    () => results.reduce((a, x) => a + x.value, 0),
+    [results]
+  );
+
+  const sectorVolumes = useMemo(() => {
+    const map = new Map<string, { volume: number; count: number }>();
+    for (const tx of TENDERS) {
+      const prev = map.get(tx.sector) ?? { volume: 0, count: 0 };
+      map.set(tx.sector, { volume: prev.volume + tx.value, count: prev.count + 1 });
+    }
+    return Array.from(map.entries())
+      .map(([s, v]) => ({ sector: s, ...v }))
+      .sort((a, b) => b.volume - a.volume);
+  }, []);
+  const maxVol = Math.max(...sectorVolumes.map((s) => s.volume), 1);
+  const totalVolumeAll = sectorVolumes.reduce((a, x) => a + x.volume, 0);
+
+  function resetFilters() {
+    setQ('');
+    setStatus('all');
+    setSector('all');
+    setOnlyFlagged(false);
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-          <ShoppingCart size={15} />
-          <span>Platformă → Achiziții Publice</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        <p className="text-gray-500 max-w-2xl">{t('subtitle')}</p>
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-8">
-        {[
-          { label: t('stats.total'), value: stats.totalProcedures.toLocaleString('ro-MD'), color: 'text-gray-900' },
-          { label: t('stats.active'), value: stats.activeTenders.toLocaleString('ro-MD'), color: 'text-blue-700' },
-          { label: t('stats.awarded'), value: stats.awardedContracts.toLocaleString('ro-MD'), color: 'text-emerald-700' },
-          { label: t('stats.cancelled'), value: stats.cancelledTenders.toLocaleString('ro-MD'), color: 'text-red-600' },
-          { label: t('stats.volume'), value: `${(stats.totalVolumeMDL / 1e9).toFixed(1)} mld. MDL`, color: 'text-gray-900' },
-          { label: t('stats.avgValue'), value: `${(stats.avgContractValue / 1e6).toFixed(2)} mil.`, color: 'text-gray-900' },
-          { label: t('stats.competitive'), value: `${stats.competitiveRate}%`, color: 'text-violet-700' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="card-padded !p-4">
-            <p className="text-xs text-gray-500 mb-1 leading-tight">{label}</p>
-            <p className={`text-lg font-bold tabular-nums ${color}`}>{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Search & filter bar */}
-      <div className="card-padded mb-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('search.placeholder')}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-              showFilters
-                ? 'bg-blue-600 border-blue-600 text-white'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
+    <div style={{ background: 'var(--paper)' }}>
+      {/* Hero */}
+      <section style={{ borderBottom: '1px solid var(--ink)', padding: '40px 0 32px' }}>
+        <div className="wrap">
+          <div
+            className="mono"
+            style={{
+              fontSize: '11px',
+              color: 'var(--ink-3)',
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+            }}
           >
-            <Filter size={15} />
-            {t('filters.title')}
-          </button>
+            {t('kicker')}
+          </div>
+          <h1
+            className="serif"
+            style={{
+              fontSize: 'var(--fs-d2)',
+              lineHeight: 0.95,
+              fontWeight: 400,
+              letterSpacing: '-0.03em',
+              margin: '0 0 16px',
+            }}
+          >
+            {t('titlePre')} <em style={{ color: 'var(--forest)' }}>{t('titleEm')}</em> {t('titlePost')}
+          </h1>
+          <p style={{ fontSize: '17px', lineHeight: 1.55, color: 'var(--ink-2)', margin: 0, maxWidth: '680px' }}>
+            {t('subtitle')}
+          </p>
         </div>
-        {showFilters && (
-          <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">{t('filters.sector')}</label>
-              <select
-                value={sector}
-                onChange={(e) => setSector(e.target.value)}
-                className="rounded-lg border border-gray-300 text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      </section>
+
+      {/* Stats */}
+      <section style={{ borderBottom: '1px solid var(--ink)', background: 'var(--paper-2)' }}>
+        <div
+          className="wrap bd-stats-row"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0 }}
+        >
+          {[
+            {
+              l: t('stats.procedures'),
+              v: fmtNum(stats.totalProcedures),
+              sub: t('stats.proceduresSub'),
+              tone: 'ink' as const,
+            },
+            {
+              l: t('stats.active'),
+              v: fmtNum(stats.activeTenders),
+              sub: t('stats.activeSub'),
+              tone: 'forest' as const,
+            },
+            {
+              l: t('stats.awarded'),
+              v: fmtNum(stats.awardedContracts),
+              sub: t('stats.awardedSub'),
+              tone: 'forest' as const,
+            },
+            {
+              l: t('stats.cancelled'),
+              v: fmtNum(stats.cancelledTenders),
+              sub: t('stats.cancelledSub'),
+              tone: 'bad' as const,
+            },
+            {
+              l: t('stats.volume'),
+              v: `${(stats.totalVolumeMDL / 1e9).toFixed(1)} mld`,
+              sub: t('stats.volumeSub'),
+              tone: 'ink' as const,
+            },
+            {
+              l: t('stats.competitive'),
+              v: `${stats.competitiveRate.toFixed(0)}%`,
+              sub: t('stats.competitiveSub'),
+              tone: 'ochre' as const,
+            },
+          ].map((s, i) => (
+            <div key={i} style={{ padding: '24px 20px', borderRight: i < 5 ? '1px solid var(--ink)' : 'none' }}>
+              <div className="eyebrow" style={{ marginBottom: '8px' }}>
+                {s.l}
+              </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: '26px',
+                  lineHeight: 1,
+                  fontWeight: 500,
+                  color:
+                    s.tone === 'forest'
+                      ? 'var(--forest)'
+                      : s.tone === 'bad'
+                      ? 'var(--bad)'
+                      : s.tone === 'ochre'
+                      ? 'var(--ochre)'
+                      : 'var(--ink)',
+                  letterSpacing: '-0.02em',
+                }}
               >
-                <option value="all">{t('filters.allSectors')}</option>
-                {PROCUREMENT_SECTORS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+                {s.v}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '4px' }}>{s.sub}</div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">{t('filters.status')}</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="rounded-lg border border-gray-300 text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          ))}
+        </div>
+      </section>
+
+      {/* Flag callout */}
+      {flaggedCount > 0 && (
+        <section style={{ padding: '40px 0', borderBottom: '1px solid var(--ink)' }}>
+          <div className="wrap">
+            <div
+              className="bd-flag"
+              style={{
+                border: '1px solid var(--ochre)',
+                padding: '24px',
+                background: 'var(--paper)',
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                gap: '24px',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'var(--ochre)',
+                  color: 'var(--ink)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: '24px',
+                  fontFamily: 'var(--serif)',
+                  fontStyle: 'italic',
+                  fontWeight: 600,
+                }}
               >
-                <option value="all">{t('filters.allStatuses')}</option>
-                <option value="active">{t('status.active')}</option>
-                <option value="awarded">{t('status.awarded')}</option>
-                <option value="cancelled">{t('status.cancelled')}</option>
-                <option value="complete">{t('status.complete')}</option>
-              </select>
-            </div>
-            <div className="flex items-end">
+                !
+              </div>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: '4px', color: 'var(--ochre-2)' }}>
+                  {t('flag.eyebrow')}
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 600 }}>
+                  {t('flag.title', { count: flaggedCount })}
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--ink-3)', marginTop: '4px' }}>
+                  {t('flag.desc')}
+                </div>
+              </div>
               <button
-                onClick={() => { setQuery(''); setSector('all'); setStatus('all'); }}
-                className="btn-ghost text-red-500 hover:text-red-700 hover:bg-red-50"
+                className="btn btn-ochre"
+                onClick={() => setOnlyFlagged((v) => !v)}
               >
-                <X size={14} />
-                {t('search.clear')}
+                {onlyFlagged ? t('search.reset') : t('flag.cta')}
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
-      {/* Results summary */}
-      <p className="text-sm text-gray-500 mb-3">
-        {t('showing')} <span className="font-medium text-gray-900">{results.length}</span>{' '}
-        {t('of')} <span className="font-medium text-gray-900">{TENDERS.length}</span>{' '}
-        {t('results')}
-      </p>
-
-      {/* Table */}
-      <div className="card overflow-hidden mb-8">
-        {results.length === 0 ? (
-          <div className="py-16 text-center">
-            <ShoppingCart size={40} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500">{t('noResults')}</p>
+      {/* Search + table */}
+      <section style={{ padding: '40px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <div
+            className="bd-filters"
+            style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '12px', marginBottom: '24px' }}
+          >
+            <div style={{ position: 'relative' }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  left: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--ink-3)',
+                }}
+              >
+                ⌕
+              </span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={t('search.placeholder')}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px 14px 40px',
+                  border: '1px solid var(--ink)',
+                  background: 'var(--paper)',
+                  fontFamily: 'var(--sans)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as typeof status)}
+              style={{
+                padding: '12px 14px',
+                border: '1px solid var(--ink)',
+                background: 'var(--paper)',
+                fontFamily: 'var(--sans)',
+                fontSize: '13px',
+              }}
+            >
+              <option value="all">{t('search.allStatuses')}</option>
+              <option value="active">{t('status.active')}</option>
+              <option value="awarded">{t('status.awarded')}</option>
+              <option value="cancelled">{t('status.cancelled')}</option>
+            </select>
+            <select
+              value={sector}
+              onChange={(e) => setSector(e.target.value)}
+              style={{
+                padding: '12px 14px',
+                border: '1px solid var(--ink)',
+                background: 'var(--paper)',
+                fontFamily: 'var(--sans)',
+                fontSize: '13px',
+              }}
+            >
+              <option value="all">{t('search.allSectors')}</option>
+              {PROCUREMENT_SECTORS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            <button className="btn" onClick={resetFilters}>
+              {t('search.reset')}
+            </button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
+
+          <div
+            className="mono"
+            style={{ fontSize: '11px', color: 'var(--ink-3)', marginBottom: '12px' }}
+          >
+            {results.length} {t('search.results')} {TENDERS.length} · {t('search.totalVolume')}{' '}
+            {fmtNum(Math.round(totalResultsVolume / 1e6))} {t('search.million')}
+          </div>
+
+          <div style={{ border: '1px solid var(--ink)', background: 'var(--paper)', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '860px' }}>
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr style={{ background: 'var(--paper-2)', borderBottom: '1px solid var(--ink)' }}>
                   {[
                     t('table.id'),
-                    t('table.title'),
+                    t('table.object'),
                     t('table.authority'),
                     t('table.value'),
                     t('table.method'),
                     t('table.status'),
                     t('table.date'),
                     t('table.bids'),
-                    '',
-                  ].map((header, i) => (
+                  ].map((h, i) => (
                     <th
                       key={i}
-                      className={`text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3 ${
-                        i === 3 || i === 7 ? 'text-right' : 'text-left'
-                      }`}
+                      style={{
+                        textAlign: i === 3 ? 'right' : 'left',
+                        padding: '12px 14px',
+                        fontFamily: 'var(--mono)',
+                        fontSize: '10px',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: 'var(--ink-3)',
+                        fontWeight: 600,
+                      }}
                     >
-                      {header}
+                      {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {results.map((tender) => (
-                  <TenderRow key={tender.id} tender={tender} />
-                ))}
+              <tbody>
+                {results.map((x) => {
+                  const flagged = isFlagged(x);
+                  return (
+                    <tr
+                      key={x.id}
+                      style={{ borderBottom: '1px solid var(--rule)', cursor: 'pointer' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--paper-2)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <td
+                        style={{
+                          padding: '14px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '11px',
+                          color: 'var(--forest)',
+                        }}
+                      >
+                        {x.id.split('-').slice(-1)[0]}
+                      </td>
+                      <td style={{ padding: '14px', maxWidth: '340px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 500, lineHeight: 1.4 }}>
+                          {tenderTitle(x, locale)}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '2px' }}>
+                          {x.sector}
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px', fontSize: '12px', color: 'var(--ink-2)' }}>
+                        {x.authority}
+                      </td>
+                      <td
+                        style={{
+                          padding: '14px',
+                          textAlign: 'right',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(x.value / 1e6).toFixed(2)}{' '}
+                        <span style={{ color: 'var(--ink-3)', fontWeight: 400 }}>mil</span>
+                      </td>
+                      <td style={{ padding: '14px' }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--mono)',
+                            fontSize: '10px',
+                            padding: '3px 8px',
+                            border: '1px solid var(--ink)',
+                            background:
+                              x.method === 'open'
+                                ? 'var(--paper)'
+                                : x.method === 'direct'
+                                ? 'var(--bad)'
+                                : 'var(--warn)',
+                            color: x.method === 'open' ? 'var(--ink)' : 'var(--paper)',
+                          }}
+                        >
+                          {t(`method.${x.method}`)}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px' }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--mono)',
+                            fontSize: '10px',
+                            padding: '3px 8px',
+                            border: '1px solid',
+                            borderColor:
+                              x.status === 'active'
+                                ? 'var(--forest)'
+                                : x.status === 'cancelled'
+                                ? 'var(--bad)'
+                                : 'var(--ink)',
+                            color:
+                              x.status === 'active'
+                                ? 'var(--forest)'
+                                : x.status === 'cancelled'
+                                ? 'var(--bad)'
+                                : 'var(--ink)',
+                          }}
+                        >
+                          {x.status === 'complete'
+                            ? t('status.awarded')
+                            : t(`status.${x.status}`)}
+                        </span>
+                        {flagged && (
+                          <span
+                            title="Risc"
+                            style={{
+                              marginLeft: '6px',
+                              fontSize: '10px',
+                              color: 'var(--ochre-2)',
+                            }}
+                          >
+                            ⚐
+                          </span>
+                        )}
+                      </td>
+                      <td
+                        style={{
+                          padding: '14px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '11px',
+                          color: 'var(--ink-3)',
+                        }}
+                      >
+                        {x.publishedDate}
+                      </td>
+                      <td
+                        style={{
+                          padding: '14px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          textAlign: 'center',
+                        }}
+                      >
+                        {x.bids ?? '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
 
-      {/* Chart */}
-      <div className="card-padded mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('chart.title')}</h2>
-        <p className="text-sm text-gray-500 mb-6">Volumul total de achiziții pe sector (milioane MDL), 2024</p>
-        <ProcurementBarChart />
-      </div>
+      {/* Sector bar chart */}
+      <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <Eyebrow num="A">{t('chart.eyebrow')}</Eyebrow>
+          <h2
+            className="serif"
+            style={{
+              fontSize: 'var(--fs-h1)',
+              fontWeight: 500,
+              margin: '0 0 32px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {t('chart.title')}
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {sectorVolumes.map((s) => (
+              <div
+                key={s.sector}
+                className="bd-bar-row"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '180px 1fr 120px 60px',
+                  gap: '16px',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ fontSize: '14px', fontWeight: 500 }}>{s.sector}</div>
+                <div style={{ height: '28px', background: 'var(--paper-2)', position: 'relative' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: `${(s.volume / maxVol) * 100}%`,
+                      background: 'var(--forest)',
+                    }}
+                  />
+                  <div
+                    className="mono"
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--paper)',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      textShadow: '0 0 2px var(--forest)',
+                    }}
+                  >
+                    {(s.volume / 1e6).toFixed(1)} mil MDL
+                  </div>
+                </div>
+                <div className="mono" style={{ fontSize: '11px', color: 'var(--ink-3)' }}>
+                  {s.count} {t('chart.procedures')}
+                </div>
+                <div
+                  className="mono"
+                  style={{ fontSize: '11px', color: 'var(--ink-3)', textAlign: 'right' }}
+                >
+                  {((s.volume / totalVolumeAll) * 100).toFixed(1)}%
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '24px', fontStyle: 'italic' }}>
+            {t('source')}
+          </p>
+        </div>
+      </section>
 
-      {/* Source */}
-      <p className="text-xs text-gray-400 text-center">{t('source')}</p>
     </div>
   );
 }
