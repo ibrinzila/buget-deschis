@@ -1,0 +1,243 @@
+{
+  "nav": {
+    "home": "Acasă",
+    "budget": "Buget",
+    "procurement": "Achiziții",
+    "about": "Despre",
+    "openData": "Date Deschise"
+  },
+  "home": {
+    "hero": {
+      "badge": "Date Deschise • OCDS • Fiscal Data Package",
+      "title": "Unde merg banii publici ai Moldovei?",
+      "subtitle": "Explorați bugetul de stat, achizițiile publice și contractele guvernamentale – toate într-un singur loc, actualizate constant și complet gratuit.",
+      "ctaBudget": "Explorează Bugetul",
+      "ctaProcurement": "Explorează Achizițiile",
+      "ctaData": "Descarcă Date",
+      "lastUpdated": "Actualizat"
+    },
+    "stats": {
+      "title": "Moldova în cifre",
+      "budget2024": "Buget de Stat 2024",
+      "procurement": "Volum Achiziții 2024",
+      "obsScore": "Scor Transparență",
+      "obsRank": "locul mondial",
+      "procedures": "Proceduri MTender",
+      "executionRate": "Rată de Execuție 2024"
+    },
+    "features": {
+      "title": "Ce poți face pe această platformă",
+      "subtitle": "Instrumente pentru cetățeni, jurnaliști și cercetători",
+      "budget": {
+        "title": "Explorator Buget",
+        "desc": "Vizualizează alocările bugetare pe sectoare, urmărește tendințele din 2019 până în prezent și compară bugetul aprobat cu cel executat."
+      },
+      "procurement": {
+        "title": "Achiziții Publice",
+        "desc": "Caută și analizează proceduri din MTender – licitații active, contracte atribuite, autorități contractante și furnizori."
+      },
+      "openData": {
+        "title": "Date Deschise",
+        "desc": "Descarcă datele brute în format CSV, JSON sau OCDS. API public documentat pentru integrare cu alte sisteme."
+      },
+      "alerts": {
+        "title": "Alerte și Urmărire",
+        "desc": "Abonează-te la alerte pentru noi licitații pe domenii de interes sau modificări bugetare relevante."
+      }
+    },
+    "highlights": {
+      "title": "Tendințe Recente",
+      "budgetGrowth": "Creștere buget 2019–2024",
+      "budgetGrowthDesc": "Bugetul de stat a crescut de la 62 mld. MDL în 2019 la 100 mld. MDL în 2024, o creștere de 61% în termeni nominali.",
+      "obsImprovement": "Scor OBS: de la 58 la 81",
+      "obsImprovementDesc": "Moldova a urcat de pe locul 47 pe locul 5 mondial în Indicele Open Budget Survey între 2017 și 2023.",
+      "mtender": "385K+ proceduri în MTender",
+      "mtenderDesc": "Din 2018 până în 2024, platforma MTender a procesat peste 385.000 de proceduri în valoare totală de 113 mld. MDL."
+    },
+    "cta": {
+      "title": "Platforma este open-source",
+      "subtitle": "Codul sursă este disponibil pe GitHub sub licența EUPL-1.2. Contribuțiile sunt binevenite.",
+      "github": "Cod Sursă pe GitHub",
+      "methodology": "Metodologie și Surse"
+    }
+  },
+  "budget": {
+    "title": "Explorator Buget",
+    "subtitle": "Analizați alocările bugetare pe sectoare funcționale, urmăriți tendințele și comparați bugetul aprobat cu cel executat.",
+    "selectYear": "Selectați Anul",
+    "viewType": {
+      "label": "Tip Vizualizare",
+      "approved": "Buget Aprobat",
+      "revised": "Buget Rectificat",
+      "actual": "Executat"
+    },
+    "summary": {
+      "total": "Total Buget",
+      "execution": "Rată Execuție",
+      "topSector": "Sectorul Dominant",
+      "vsLastYear": "față de 2023"
+    },
+    "treemap": {
+      "title": "Distribuția pe Sectoare",
+      "subtitle": "Faceți clic pe un sector pentru detalii",
+      "tooltip": {
+        "approved": "Aprobat",
+        "actual": "Executat",
+        "share": "Pondere"
+      }
+    },
+    "trend": {
+      "title": "Tendința Bugetară 2019–2024",
+      "subtitle": "Miliarde MDL",
+      "approved": "Buget Aprobat",
+      "actual": "Executat",
+      "euFunds": "Fonduri UE"
+    },
+    "table": {
+      "title": "Detalii pe Sectoare",
+      "sector": "Sector",
+      "approved": "Aprobat (mil. MDL)",
+      "actual": "Executat (mil. MDL)",
+      "execution": "Execuție",
+      "share": "Pondere"
+    },
+    "download": "Descarcă CSV",
+    "source": "Sursa: Ministerul Finanțelor al Republicii Moldova, World Bank BOOST"
+  },
+  "procurement": {
+    "title": "Achiziții Publice",
+    "subtitle": "Date din platforma MTender – sistemul național de achiziții publice, conform standardului OCDS 1.1.",
+    "search": {
+      "placeholder": "Căutați licitații, autorități, furnizori…",
+      "button": "Caută",
+      "clear": "Șterge"
+    },
+    "filters": {
+      "title": "Filtre",
+      "sector": "Sector",
+      "allSectors": "Toate Sectoarele",
+      "status": "Stare",
+      "allStatuses": "Toate Stările",
+      "method": "Procedură",
+      "allMethods": "Toate Procedurile"
+    },
+    "stats": {
+      "total": "Total Proceduri",
+      "active": "Active",
+      "awarded": "Atribuite",
+      "cancelled": "Anulate",
+      "volume": "Volum Total",
+      "avgValue": "Valoare Medie Contract",
+      "competitive": "Rată Competitivitate"
+    },
+    "table": {
+      "id": "ID Procedură",
+      "title": "Obiect",
+      "authority": "Autoritate Contractantă",
+      "value": "Valoare (MDL)",
+      "method": "Procedură",
+      "status": "Stare",
+      "date": "Publicat",
+      "bids": "Oferte",
+      "winner": "Câștigător"
+    },
+    "status": {
+      "active": "Activ",
+      "awarded": "Atribuit",
+      "cancelled": "Anulat",
+      "complete": "Finalizat"
+    },
+    "method": {
+      "open": "Licitație Deschisă",
+      "limited": "Licitație Limitată",
+      "direct": "Achiziție Directă"
+    },
+    "chart": {
+      "title": "Volum Achiziții pe Sector",
+      "volume": "Volum (mil. MDL)",
+      "count": "Nr. Proceduri"
+    },
+    "noResults": "Nu s-au găsit rezultate pentru căutarea dvs.",
+    "showing": "Se afișează",
+    "of": "din",
+    "results": "rezultate",
+    "source": "Sursa: MTender – Sistemul de Achiziții Publice al Republicii Moldova (OCDS 1.1)"
+  },
+  "about": {
+    "title": "Despre Platformă",
+    "subtitle": "Buget Deschis Moldova este o inițiativă a Cohesion Lab – Laboratorul de Tehnologie Civică și Coeziune Socială.",
+    "mission": {
+      "title": "Misiune",
+      "text": "Credem că transparența fiscală nu este un lux – este un drept fundamental. Platforma noastră face datele bugetare și de achiziții publice accesibile oricărui cetățean, jurnalist sau cercetător, fără bariere tehnice sau juridice."
+    },
+    "dataSource": {
+      "title": "Surse de Date",
+      "mtender": {
+        "title": "MTender",
+        "desc": "Sistemul național de achiziții publice, conform OCDS 1.1. Date actualizate zilnic prin API oficial."
+      },
+      "mof": {
+        "title": "Ministerul Finanțelor",
+        "desc": "Date privind execuția bugetară lunară, legea bugetului de stat și bugetul cetățenilor."
+      },
+      "boost": {
+        "title": "BOOST Moldova",
+        "desc": "Baza de date de cheltuieli publice a Băncii Mondiale, cu clasificare multidimensională."
+      },
+      "ccrm": {
+        "title": "Curtea de Conturi",
+        "desc": "Rapoarte de audit financiar și de conformitate pentru instituțiile publice."
+      }
+    },
+    "methodology": {
+      "title": "Metodologie",
+      "text": "Datele sunt colectate prin API-ul MTender și procesate pentru a asigura consistența și acuratețea. Clasificarea bugetară urmează standardul COFOG (Classification of the Functions of Government) al ONU. Datele de achiziții publice respectă standardul OCDS 1.1 (Open Contracting Data Standard)."
+    },
+    "openSource": {
+      "title": "Open Source",
+      "text": "Codul sursă al platformei este publicat pe GitHub sub licența EUPL-1.2 (European Union Public Licence). Datele sunt disponibile sub licența CC0 (domeniu public). Contribuțiile sunt binevenite.",
+      "github": "GitHub Repository",
+      "license": "Licența EUPL-1.2"
+    },
+    "contact": {
+      "title": "Contact",
+      "email": "contact@cohesionlab.org",
+      "website": "cohesionlab.org"
+    },
+    "partners": {
+      "title": "Parteneri și Standarde"
+    }
+  },
+  "common": {
+    "loading": "Se încarcă…",
+    "error": "Eroare la încărcarea datelor",
+    "noData": "Nu există date disponibile",
+    "millions": "mil.",
+    "billions": "mld.",
+    "mdl": "MDL",
+    "year": "Anul",
+    "backToTop": "Sus",
+    "learnMore": "Află mai mult",
+    "viewAll": "Vezi toate",
+    "download": "Descarcă",
+    "share": "Distribuie",
+    "source": "Sursa"
+  },
+  "footer": {
+    "description": "Platformă de transparență bugetară pentru Moldova, construită de Cohesion Lab.",
+    "links": {
+      "budget": "Buget",
+      "procurement": "Achiziții",
+      "openData": "Date Deschise",
+      "about": "Despre",
+      "methodology": "Metodologie",
+      "github": "GitHub"
+    },
+    "legal": {
+      "license": "Licența EUPL-1.2",
+      "data": "Date: CC0",
+      "privacy": "Confidențialitate"
+    },
+    "copyright": "© 2025 Cohesion Lab. Cod deschis sub EUPL-1.2."
+  }
+}
