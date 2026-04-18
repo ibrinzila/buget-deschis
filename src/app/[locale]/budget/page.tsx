@@ -1,60 +1,85 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import dynamic from 'next/dynamic';
-import {
-  BarChart3,
-  Download,
-  TrendingUp,
-  Percent,
-  ArrowUpRight,
-  ArrowDownRight,
-  Info,
-} from 'lucide-react';
-import { BUDGET_DATA, AVAILABLE_YEARS, computeSectorPct } from '@/lib/budget-data';
-import BudgetTimeSeries from '@/components/charts/BudgetTimeSeries';
-import { formatMDL, formatPercent } from '@/lib/utils';
+import { BUDGET_DATA, BUDGET_TREND, AVAILABLE_YEARS, SECTOR_STORY, computeSectorPct } from '@/lib/budget-data';
+import type { BudgetSector, BudgetYearData, Locale } from '@/lib/types';
 
-const BudgetTreemap = dynamic(() => import('@/components/charts/BudgetTreemap'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[420px] animate-pulse bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-      <span className="text-gray-400 text-sm">Se încarcă vizualizarea…</span>
+type ViewKey = 'approved' | 'revised' | 'actual';
+
+function sectorLocalName(s: BudgetSector, locale: string) {
+  if (locale === 'ru') return s.nameRu;
+  if (locale === 'en') return s.nameEn;
+  return s.name;
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('ro-MD', { maximumFractionDigits: 0 }).format(n);
+}
+
+function Eyebrow({ num, children }: { num: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+      <span
+        className="mono"
+        style={{
+          fontSize: '11px',
+          background: 'var(--ink)',
+          color: 'var(--paper)',
+          padding: '2px 8px',
+          letterSpacing: '0.1em',
+        }}
+      >
+        {num}
+      </span>
+      <span style={{ flex: 1, height: '1px', background: 'var(--rule)' }} />
+      <span
+        className="mono"
+        style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-3)' }}
+      >
+        {children}
+      </span>
     </div>
-  ),
-});
-
-type DataKey = 'approved' | 'revised' | 'actual';
+  );
+}
 
 export default function BudgetPage() {
   const t = useTranslations('budget');
-  const locale = useLocale();
-  const [year, setYear] = useState(2024);
-  const [dataKey, setDataKey] = useState<DataKey>('approved');
+  const locale = useLocale() as Locale;
 
-  const rawData = BUDGET_DATA[year];
-  const data = computeSectorPct(rawData);
-  const prevData = year > 2019 ? BUDGET_DATA[year - 1] : null;
-  const totalValue = data[`total${dataKey.charAt(0).toUpperCase()}${dataKey.slice(1)}` as 'totalApproved' | 'totalRevised' | 'totalActual'];
-  const prevTotalValue = prevData?.totalApproved ?? 0;
-  const pctChange = prevData ? ((totalValue - prevTotalValue) / prevTotalValue) * 100 : null;
-  const topSector = [...data.sectors].sort((a, b) => b[dataKey] - a[dataKey])[0];
+  const [year, setYear] = useState<number>(2024);
+  const [view, setView] = useState<ViewKey>('approved');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const sectorNameKey = locale === 'ru' ? 'nameRu' : locale === 'en' ? 'nameEn' : 'name';
+  const rawData = BUDGET_DATA[year] ?? BUDGET_DATA[2024]!;
+  const data: BudgetYearData = useMemo(() => computeSectorPct(rawData), [rawData]);
+  const total = data.totalApproved;
+
+  const sorted = useMemo(
+    () => [...data.sectors].sort((a, b) => b[view] - a[view]),
+    [data.sectors, view]
+  );
+
+  const selected = selectedId ? sorted.find((s) => s.id === selectedId) ?? sorted[0] : sorted[0];
+  const topSector = sorted[0]!;
+
+  const prev = year > 2019 ? BUDGET_DATA[year - 1] : null;
+  const pctChange = prev ? ((data.totalApproved - prev.totalApproved) / prev.totalApproved) * 100 : 0;
 
   function downloadCSV() {
     const rows = [
-      ['Sector', 'Cod', 'Aprobat (mil. MDL)', 'Executat (mil. MDL)', 'Pondere %'],
-      ...data.sectors.map((s) => [
-        s.name,
+      ['COFOG', 'Sector', 'Aprobat', 'Revizuit', 'Executat', 'Execuție %', 'Pondere %'],
+      ...sorted.map((s) => [
         s.code,
+        sectorLocalName(s, locale),
         s.approved.toString(),
+        s.revised.toString(),
         s.actual.toString(),
-        (s.pct ?? 0).toFixed(2),
+        ((s.actual / s.approved) * 100).toFixed(1),
+        (s.pct ?? 0).toFixed(1),
       ]),
     ];
-    const csv = rows.map((r) => r.join(',')).join('\n');
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -64,240 +89,709 @@ export default function BudgetPage() {
     URL.revokeObjectURL(url);
   }
 
+  function downloadJSON() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `buget-moldova-${year}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-          <BarChart3 size={15} />
-          <span>Platformă → Buget</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        <p className="text-gray-500 max-w-2xl">{t('subtitle')}</p>
-      </div>
-
-      {/* Controls */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">{t('selectYear')}:</label>
-          <div className="flex rounded-xl border border-gray-300 overflow-hidden bg-white">
-            {AVAILABLE_YEARS.map((y) => (
-              <button
-                key={y}
-                onClick={() => setYear(y)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  y === year
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
+    <div style={{ background: 'var(--paper)', minHeight: '80vh' }}>
+      {/* Hero */}
+      <section style={{ borderBottom: '1px solid var(--ink)', padding: '40px 0 32px' }}>
+        <div className="wrap">
+          <div
+            className="mono"
+            style={{ fontSize: '11px', color: 'var(--ink-3)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.14em' }}
+          >
+            {t('kicker')}
+          </div>
+          <div className="bd-split-end" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '48px', alignItems: 'end' }}>
+            <div>
+              <h1
+                className="serif"
+                style={{ fontSize: 'var(--fs-d2)', lineHeight: 0.95, fontWeight: 400, letterSpacing: '-0.03em', margin: '0 0 16px' }}
               >
-                {y}
-              </button>
-            ))}
+                {t('titlePre')} <em style={{ color: 'var(--forest)' }}>{t('titleEm')}</em> {t('titlePost')}
+              </h1>
+              <p style={{ fontSize: '17px', lineHeight: 1.55, color: 'var(--ink-2)', margin: 0, maxWidth: '560px' }}>
+                {t('subtitle')}
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: '8px' }}>
+                  {t('fiscalYear')}
+                </div>
+                <div style={{ display: 'flex', border: '1px solid var(--ink)' }}>
+                  {AVAILABLE_YEARS.map((y, i) => (
+                    <button
+                      key={y}
+                      onClick={() => {
+                        setYear(y);
+                        setSelectedId(null);
+                      }}
+                      style={{
+                        flex: 1,
+                        border: 'none',
+                        padding: '10px',
+                        background: year === y ? 'var(--ink)' : 'var(--paper)',
+                        color: year === y ? 'var(--paper)' : 'var(--ink)',
+                        fontFamily: 'var(--mono)',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        borderRight: i < AVAILABLE_YEARS.length - 1 ? '1px solid var(--ink)' : 'none',
+                      }}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: '8px' }}>
+                  {t('viewType.label')}
+                </div>
+                <div style={{ display: 'flex', border: '1px solid var(--ink)' }}>
+                  {(['approved', 'revised', 'actual'] as const).map((k, i) => (
+                    <button
+                      key={k}
+                      onClick={() => setView(k)}
+                      style={{
+                        flex: 1,
+                        border: 'none',
+                        padding: '10px',
+                        background: view === k ? 'var(--forest)' : 'var(--paper)',
+                        color: view === k ? 'var(--paper)' : 'var(--ink)',
+                        fontFamily: 'var(--sans)',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        borderRight: i < 2 ? '1px solid var(--ink)' : 'none',
+                      }}
+                    >
+                      {t(`viewType.${k}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">{t('viewType.label')}:</label>
-          <div className="flex rounded-xl border border-gray-300 overflow-hidden bg-white">
-            {(['approved', 'revised', 'actual'] as const).map((key) => (
-              <button
-                key={key}
-                onClick={() => setDataKey(key)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  key === dataKey
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
+      </section>
+
+      {/* Summary row */}
+      <section style={{ borderBottom: '1px solid var(--ink)', background: 'var(--paper-2)' }}>
+        <div
+          className="wrap bd-summary-5"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0 }}
+        >
+          {[
+            {
+              l: t('summary.total'),
+              v: (data.totalApproved / 1000).toFixed(1),
+              u: t('summary.unit'),
+              sub: prev ? `${pctChange >= 0 ? '↑' : '↓'} ${Math.abs(pctChange).toFixed(1)}% vs ${year - 1}` : '—',
+              tone: 'forest' as const,
+            },
+            {
+              l: t('summary.executed'),
+              v: (data.totalActual / 1000).toFixed(1),
+              u: t('summary.unit'),
+              sub: `${data.executionRate.toFixed(1)}% ${t('summary.executedSub')}`,
+              tone: 'forest' as const,
+            },
+            {
+              l: t('summary.topSector'),
+              v: sectorLocalName(topSector, locale),
+              u: null,
+              sub: `${(topSector.pct ?? 0).toFixed(1)}% ${t('summary.topSectorSub')}`,
+              tone: 'ink' as const,
+            },
+            {
+              l: t('summary.euFunds'),
+              v: ((BUDGET_TREND.find((b) => b.year === year)?.euFunds ?? 9400) / 1000).toFixed(1),
+              u: t('summary.unit'),
+              sub: t('summary.euFundsSub'),
+              tone: 'ochre' as const,
+            },
+            {
+              l: t('summary.perCapita'),
+              v: `~${fmt(Math.round((data.totalApproved * 1_000_000) / 2_600_000 / 1000) * 1000)}`,
+              u: 'lei/an',
+              sub: t('summary.perCapitaSub'),
+              tone: 'ink' as const,
+            },
+          ].map((s, i) => (
+            <div key={i} style={{ padding: '28px 24px', borderRight: i < 4 ? '1px solid var(--ink)' : 'none' }}>
+              <div className="eyebrow" style={{ marginBottom: '10px' }}>
+                {s.l}
+              </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: '32px',
+                  lineHeight: 1,
+                  fontWeight: 500,
+                  color:
+                    s.tone === 'forest'
+                      ? 'var(--forest)'
+                      : s.tone === 'ochre'
+                      ? 'var(--ochre)'
+                      : 'var(--ink)',
+                  letterSpacing: '-0.02em',
+                }}
               >
-                {t(`viewType.${key}`)}
+                {s.v}
+                {s.u && (
+                  <span
+                    className="mono"
+                    style={{ fontSize: '12px', color: 'var(--ink-3)', fontWeight: 400, marginLeft: '6px' }}
+                  >
+                    {s.u}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '6px' }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Treemap + detail */}
+      <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <div
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}
+          >
+            <div>
+              <Eyebrow num="A">{t('composition.eyebrow')}</Eyebrow>
+              <h2
+                className="serif"
+                style={{ fontSize: 'var(--fs-h1)', fontWeight: 500, letterSpacing: '-0.02em', margin: 0 }}
+              >
+                {t('composition.title')} · {year}
+              </h2>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={downloadCSV}
+                className="btn btn-ghost"
+                style={{ border: '1px solid var(--ink)' }}
+              >
+                {t('actions.csv')}
               </button>
-            ))}
+              <button
+                onClick={downloadJSON}
+                className="btn btn-ghost"
+                style={{ border: '1px solid var(--ink)' }}
+              >
+                {t('actions.json')}
+              </button>
+            </div>
           </div>
-        </div>
-        <button onClick={downloadCSV} className="btn-secondary ml-auto">
-          <Download size={15} />
-          {t('download')}
-        </button>
-      </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="card-padded">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            {t('summary.total')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">
-            {(totalValue / 1000).toFixed(1)}
-            <span className="text-sm font-normal text-gray-500 ml-1">mld. MDL</span>
-          </p>
-          {pctChange !== null && (
-            <p className={`text-xs mt-1 flex items-center gap-1 ${pctChange >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-              {pctChange >= 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
-              {Math.abs(pctChange).toFixed(1)}% {t('summary.vsLastYear')}
-            </p>
-          )}
-        </div>
-
-        <div className="card-padded">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            {t('summary.execution')}
-          </p>
-          <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-            {data.executionRate.toFixed(1)}%
-          </p>
-          <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-emerald-500 rounded-full transition-all"
-              style={{ width: `${data.executionRate}%` }}
+          <div className="bd-treemap-grid" style={{ display: 'grid', gridTemplateColumns: '2.4fr 1fr', gap: '24px' }}>
+            <BudgetTreemap
+              sorted={sorted}
+              total={total}
+              view={view}
+              locale={locale}
+              onSelect={(id) => setSelectedId(id)}
+              selectedId={selected?.id ?? null}
             />
+            {selected && <SectorDetail sector={selected} total={total} year={year} locale={locale} t={t} />}
           </div>
         </div>
-
-        <div className="card-padded">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            {t('summary.topSector')}
-          </p>
-          <p className="text-base font-semibold text-gray-900 leading-tight">
-            {topSector[sectorNameKey]}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {(topSector.pct ?? 0).toFixed(1)}% • {formatMDL(topSector.approved, locale)}
-          </p>
-        </div>
-
-        <div className="card-padded">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            Sectoare
-          </p>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{data.sectors.length}</p>
-          <p className="text-xs text-gray-500 mt-1">clasificare COFOG</p>
-        </div>
-      </div>
-
-      {/* Treemap */}
-      <div className="card-padded mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{t('treemap.title')}</h2>
-            <p className="text-sm text-gray-500">{t('treemap.subtitle')}</p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-1.5">
-            <Info size={13} />
-            Hover pentru detalii
-          </div>
-        </div>
-        <BudgetTreemap sectors={data.sectors} dataKey={dataKey} locale={locale} />
-      </div>
-
-      {/* Time series */}
-      <div className="card-padded mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('trend.title')}</h2>
-        <p className="text-sm text-gray-500 mb-6">{t('trend.subtitle')}</p>
-        <BudgetTimeSeries />
-      </div>
+      </section>
 
       {/* Data table */}
-      <div className="card overflow-hidden mb-6">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{t('table.title')}</h2>
-          <span className="text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-1.5">
-            {year}
-          </span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-6 py-3">
-                  {t('table.sector')}
-                </th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">
-                  {t('table.approved')}
-                </th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">
-                  {t('table.actual')}
-                </th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">
-                  {t('table.execution')}
-                </th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">
-                  {t('table.share')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {[...data.sectors]
-                .sort((a, b) => b.approved - a.approved)
-                .map((sector) => {
-                  const execRate = (sector.actual / sector.approved) * 100;
+      <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <Eyebrow num="B">{t('table.eyebrow')}</Eyebrow>
+          <h2
+            className="serif"
+            style={{ fontSize: 'var(--fs-h1)', fontWeight: 500, letterSpacing: '-0.02em', margin: '0 0 24px' }}
+          >
+            {t('table.title')}
+          </h2>
+          <div style={{ border: '1px solid var(--ink)', background: 'var(--paper)', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '720px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--ink)', background: 'var(--paper-2)' }}>
+                  {[t('table.cofog'), t('table.sector'), t('table.approved'), t('table.executed'), t('table.execution'), t('table.share'), ''].map((h, i) => (
+                    <th
+                      key={i}
+                      style={{
+                        textAlign: i >= 2 && i <= 5 ? 'right' : 'left',
+                        padding: '12px 16px',
+                        fontFamily: 'var(--mono)',
+                        fontSize: '10px',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: 'var(--ink-3)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((s) => {
+                  const exec = (s.actual / s.approved) * 100;
+                  const execColor =
+                    exec >= 90 ? 'var(--good)' : exec >= 75 ? 'var(--warn)' : 'var(--bad)';
                   return (
-                    <tr key={sector.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-3 h-3 rounded-sm flex-shrink-0"
-                            style={{ backgroundColor: sector.color }}
+                    <tr
+                      key={s.id}
+                      style={{ borderBottom: '1px solid var(--rule)', cursor: 'pointer' }}
+                      onClick={() => setSelectedId(s.id)}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--paper-2)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <td
+                        style={{
+                          padding: '14px 16px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '12px',
+                          color: 'var(--ink-3)',
+                        }}
+                      >
+                        {s.code}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span
+                            style={{
+                              width: '10px',
+                              height: '10px',
+                              background: s.color,
+                              flexShrink: 0,
+                            }}
                           />
-                          <span className="font-medium text-sm text-gray-900">
-                            {sector[sectorNameKey]}
+                          <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                            {sectorLocalName(s, locale)}
                           </span>
-                          <span className="text-xs text-gray-400 font-mono">{sector.code}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-right tabular-nums text-sm text-gray-700">
-                        {sector.approved.toLocaleString('ro-MD')}
+                      <td
+                        style={{
+                          padding: '14px 16px',
+                          textAlign: 'right',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '13px',
+                        }}
+                      >
+                        {fmt(s.approved)}
                       </td>
-                      <td className="px-4 py-4 text-right tabular-nums text-sm text-gray-700">
-                        {sector.actual.toLocaleString('ro-MD')}
+                      <td
+                        style={{
+                          padding: '14px 16px',
+                          textAlign: 'right',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '13px',
+                        }}
+                      >
+                        {fmt(s.actual)}
                       </td>
-                      <td className="px-4 py-4 text-right">
-                        <div className="inline-flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden hidden sm:block">
+                      <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <div
+                            style={{
+                              width: '60px',
+                              height: '4px',
+                              background: 'var(--paper-2)',
+                              border: '1px solid var(--rule)',
+                            }}
+                          >
                             <div
-                              className="h-full rounded-full"
                               style={{
-                                width: `${Math.min(execRate, 100)}%`,
-                                backgroundColor: execRate >= 90 ? '#10b981' : execRate >= 75 ? '#f59e0b' : '#ef4444',
+                                height: '100%',
+                                width: `${Math.min(exec, 100)}%`,
+                                background: execColor,
                               }}
                             />
                           </div>
                           <span
-                            className={`text-sm font-medium tabular-nums ${
-                              execRate >= 90 ? 'text-emerald-700' : execRate >= 75 ? 'text-amber-700' : 'text-red-600'
-                            }`}
+                            className="mono"
+                            style={{ fontSize: '12px', fontWeight: 600, color: execColor }}
                           >
-                            {execRate.toFixed(1)}%
+                            {exec.toFixed(1)}%
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-right tabular-nums text-sm text-gray-500">
-                        {(sector.pct ?? 0).toFixed(1)}%
+                      <td
+                        style={{
+                          padding: '14px 16px',
+                          textAlign: 'right',
+                          fontFamily: 'var(--mono)',
+                          fontSize: '13px',
+                          color: 'var(--ink-3)',
+                        }}
+                      >
+                        {(s.pct ?? 0).toFixed(1)}%
                       </td>
+                      <td style={{ padding: '14px 16px', textAlign: 'right', color: 'var(--ink-3)' }}>→</td>
                     </tr>
                   );
                 })}
-            </tbody>
-            <tfoot className="bg-gray-50 border-t border-gray-200">
-              <tr>
-                <td className="px-6 py-3 text-sm font-semibold text-gray-900">Total</td>
-                <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-gray-900">
-                  {data.totalApproved.toLocaleString('ro-MD')}
-                </td>
-                <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-gray-900">
-                  {data.totalActual.toLocaleString('ro-MD')}
-                </td>
-                <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-700">
-                  {data.executionRate.toFixed(1)}%
-                </td>
-                <td className="px-4 py-3 text-right text-sm font-semibold text-gray-500">100%</td>
-              </tr>
-            </tfoot>
-          </table>
+              </tbody>
+              <tfoot>
+                <tr style={{ background: 'var(--ink)', color: 'var(--paper)' }}>
+                  <td style={{ padding: '14px 16px', fontFamily: 'var(--mono)', fontSize: '11px' }}>Σ</td>
+                  <td style={{ padding: '14px 16px', fontWeight: 600 }}>{t('table.total')}</td>
+                  <td
+                    style={{
+                      padding: '14px 16px',
+                      textAlign: 'right',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {fmt(data.totalApproved)}
+                  </td>
+                  <td
+                    style={{
+                      padding: '14px 16px',
+                      textAlign: 'right',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {fmt(data.totalActual)}
+                  </td>
+                  <td
+                    style={{
+                      padding: '14px 16px',
+                      textAlign: 'right',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 600,
+                      color: 'var(--ochre-3)',
+                    }}
+                  >
+                    {data.executionRate.toFixed(1)}%
+                  </td>
+                  <td
+                    style={{
+                      padding: '14px 16px',
+                      textAlign: 'right',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    100%
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '16px', fontStyle: 'italic' }}>
+            {t('source')}
+          </p>
+        </div>
+      </section>
+
+    </div>
+  );
+}
+
+function BudgetTreemap({
+  sorted,
+  total,
+  view,
+  locale,
+  onSelect,
+  selectedId,
+}: {
+  sorted: BudgetSector[];
+  total: number;
+  view: ViewKey;
+  locale: string;
+  onSelect: (id: string) => void;
+  selectedId: string | null;
+}) {
+  const col1 = sorted.slice(0, 3);
+  const col2 = sorted.slice(3, 7);
+  const col3 = sorted.slice(7);
+
+  const Block = ({ s }: { s: BudgetSector }) => {
+    const pct = (s[view] / (view === 'approved' ? total : total)) * 100;
+    const isSel = selectedId === s.id;
+    return (
+      <button
+        onClick={() => onSelect(s.id)}
+        style={{
+          background: s.color,
+          color: 'var(--paper)',
+          border: 'none',
+          textAlign: 'left',
+          padding: pct > 15 ? '18px' : '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          outline: isSel ? '3px solid var(--ochre)' : '1px solid var(--ink)',
+          outlineOffset: isSel ? '-3px' : '-1px',
+          transition: 'filter 0.15s',
+          fontFamily: 'var(--sans)',
+          overflow: 'hidden',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
+        onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
+      >
+        <div>
+          <div className="mono" style={{ fontSize: '10px', opacity: 0.7 }}>
+            COFOG · {s.code}
+          </div>
+          <div
+            className="serif"
+            style={{
+              fontSize: pct > 15 ? '26px' : pct > 8 ? '18px' : '14px',
+              fontWeight: 500,
+              lineHeight: 1.1,
+              marginTop: '4px',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {sectorLocalName(s, locale)}
+          </div>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            marginTop: '12px',
+          }}
+        >
+          <span
+            className="mono"
+            style={{ fontSize: pct > 15 ? '24px' : pct > 8 ? '18px' : '13px', fontWeight: 700 }}
+          >
+            {pct.toFixed(1)}%
+          </span>
+          <span className="mono" style={{ fontSize: '10px', opacity: 0.8 }}>
+            {fmt(s[view])} mil
+          </span>
+        </div>
+      </button>
+    );
+  };
+
+  return (
+    <div
+      style={{
+        background: 'var(--ink)',
+        display: 'grid',
+        gridTemplateColumns: '2.8fr 1.6fr 1fr',
+        gap: '1px',
+        height: '560px',
+        border: '1px solid var(--ink)',
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: col1.map((s) => `${s[view]}fr`).join(' '),
+          gap: '1px',
+        }}
+      >
+        {col1.map((s) => (
+          <Block key={s.id} s={s} />
+        ))}
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: col2.map((s) => `${s[view]}fr`).join(' '),
+          gap: '1px',
+        }}
+      >
+        {col2.map((s) => (
+          <Block key={s.id} s={s} />
+        ))}
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: col3.map((s) => `${s[view]}fr`).join(' '),
+          gap: '1px',
+        }}
+      >
+        {col3.map((s) => (
+          <Block key={s.id} s={s} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SectorDetail({
+  sector,
+  total,
+  year,
+  locale,
+  t,
+}: {
+  sector: BudgetSector;
+  total: number;
+  year: number;
+  locale: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const exec = (sector.actual / sector.approved) * 100;
+  const execColor = exec >= 90 ? 'var(--good)' : exec >= 75 ? 'var(--warn)' : 'var(--bad)';
+  const share = (sector.approved / total) * 100;
+  const story = SECTOR_STORY[sector.id] ?? '';
+
+  const trend = AVAILABLE_YEARS.slice()
+    .reverse()
+    .map((y) => BUDGET_DATA[y]?.sectors.find((x) => x.id === sector.id)?.approved ?? 0);
+  const trendMax = Math.max(...trend, 1);
+  const trendPts = trend.map((v, i) => ({
+    x: (i / (trend.length - 1)) * 200,
+    y: 50 - (v / trendMax) * 40,
+  }));
+
+  return (
+    <div
+      style={{
+        border: '1px solid var(--ink)',
+        padding: '24px',
+        background: 'var(--paper)',
+        position: 'sticky',
+        top: '88px',
+        height: '560px',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div className="mono" style={{ fontSize: '10px', color: 'var(--ink-3)', letterSpacing: '0.12em' }}>
+        COFOG {sector.code} · {year}
+      </div>
+      <h3
+        className="serif"
+        style={{
+          fontSize: '28px',
+          fontWeight: 500,
+          letterSpacing: '-0.02em',
+          margin: '6px 0 6px',
+          lineHeight: 1.05,
+        }}
+      >
+        {sectorLocalName(sector, locale)}
+      </h3>
+      {story && (
+        <p style={{ fontSize: '13px', color: 'var(--ink-3)', margin: '0 0 20px', fontStyle: 'italic' }}>
+          {story}
+        </p>
+      )}
+
+      <div style={{ background: 'var(--paper-2)', padding: '16px', marginBottom: '16px' }}>
+        <div className="eyebrow" style={{ marginBottom: '6px' }}>
+          {t('detail.allocated')} · {share.toFixed(1)}% {t('detail.ofBudget')}
+        </div>
+        <div
+          className="serif"
+          style={{
+            fontSize: '36px',
+            fontWeight: 500,
+            color: sector.color,
+            lineHeight: 1,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {fmt(sector.approved)}{' '}
+          <span className="mono" style={{ fontSize: '12px', color: 'var(--ink-3)', fontWeight: 400 }}>
+            {t('detail.unit')}
+          </span>
         </div>
       </div>
 
-      {/* Source */}
-      <p className="text-xs text-gray-400 text-center">{t('source')}</p>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '12px',
+          marginBottom: '20px',
+        }}
+      >
+        <div style={{ border: '1px solid var(--rule)', padding: '12px' }}>
+          <div className="eyebrow">{t('detail.executed')}</div>
+          <div
+            className="mono"
+            style={{ fontSize: '18px', fontWeight: 600, color: 'var(--forest)', marginTop: '4px' }}
+          >
+            {fmt(sector.actual)}
+          </div>
+        </div>
+        <div style={{ border: '1px solid var(--rule)', padding: '12px' }}>
+          <div className="eyebrow">{t('detail.executionRate')}</div>
+          <div
+            className="mono"
+            style={{ fontSize: '18px', fontWeight: 600, color: execColor, marginTop: '4px' }}
+          >
+            {exec.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '16px' }}>
+        <div className="eyebrow" style={{ marginBottom: '8px' }}>
+          {t('detail.trend')}
+        </div>
+        <svg viewBox="0 0 200 50" style={{ width: '100%', height: '50px' }}>
+          {trendPts.map((p, i) => {
+            if (i === 0) return null;
+            const prev = trendPts[i - 1]!;
+            return (
+              <line
+                key={i}
+                x1={prev.x}
+                y1={prev.y}
+                x2={p.x}
+                y2={p.y}
+                stroke={sector.color}
+                strokeWidth="2"
+              />
+            );
+          })}
+          {trendPts.map((p, i) => (
+            <circle
+              key={i}
+              cx={p.x}
+              cy={p.y}
+              r="2.5"
+              fill="var(--paper)"
+              stroke={sector.color}
+              strokeWidth="1.5"
+            />
+          ))}
+        </svg>
+      </div>
+
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <button
+          className="btn"
+          style={{ fontSize: '12px', padding: '10px', justifyContent: 'center' }}
+        >
+          {t('detail.subCategories')}
+        </button>
+        <button
+          className="btn btn-ghost"
+          style={{ fontSize: '11px', justifyContent: 'center' }}
+        >
+          {t('detail.downloadCsv')}
+        </button>
+      </div>
     </div>
   );
 }

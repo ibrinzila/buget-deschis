@@ -1,30 +1,25 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { Menu, X, Globe, BarChart3, ShoppingCart, Info, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
+const NAV_ITEMS = [
+  { href: '/', key: 'home', num: '01' },
+  { href: '/budget', key: 'budget', num: '02' },
+  { href: '/procurement', key: 'procurement', num: '03' },
+  { href: '/about', key: 'about', num: '04' },
+] as const;
 
 const LOCALES = [
-  { code: 'ro', label: 'RO', name: 'Română' },
-  { code: 'ru', label: 'RU', name: 'Русский' },
-  { code: 'en', label: 'EN', name: 'English' },
+  { code: 'ro', label: 'RO' },
+  { code: 'ru', label: 'RU' },
+  { code: 'en', label: 'EN' },
 ] as const;
 
 export default function Header() {
   const t = useTranslations('nav');
   const locale = useLocale();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
-
-  const navLinks = [
-    { href: '/', label: t('home'), icon: Home },
-    { href: '/budget', label: t('budget'), icon: BarChart3 },
-    { href: '/procurement', label: t('procurement'), icon: ShoppingCart },
-    { href: '/about', label: t('about'), icon: Info },
-  ];
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -32,110 +27,144 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">MD</span>
-            </div>
-            <div className="hidden sm:block">
-              <div className="text-sm font-bold text-gray-900 leading-tight group-hover:text-blue-700 transition-colors">
-                Buget Deschis
-              </div>
-              <div className="text-xs text-gray-500 leading-tight">Moldova</div>
-            </div>
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                  isActive(href)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                )}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Right: Language + Mobile menu */}
-          <div className="flex items-center gap-2">
-            {/* Language Switcher */}
-            <div className="relative">
-              <button
-                onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                aria-label="Change language"
-              >
-                <Globe size={15} />
-                <span>{LOCALES.find((l) => l.code === locale)?.label}</span>
-              </button>
-              {langOpen && (
-                <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
-                  {LOCALES.map((l) => (
-                    <Link
-                      key={l.code}
-                      href={pathname}
-                      locale={l.code}
-                      onClick={() => setLangOpen(false)}
-                      className={cn(
-                        'flex items-center gap-2 px-4 py-2.5 text-sm transition-colors',
-                        l.code === locale
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      )}
-                    >
-                      <span className="font-mono text-xs w-6">{l.label}</span>
-                      <span>{l.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Mobile menu toggle */}
-            <button
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+    <header
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        background: 'var(--paper)',
+        borderBottom: '1px solid var(--ink)',
+      }}
+    >
+      <style>{`
+        @media (max-width: 1180px) {
+          .bd-header-subtitle { display: none; }
+          .bd-nav-label { display: none; }
+          .bd-nav-btn { padding: 8px 10px !important; }
+        }
+        @media (max-width: 900px) {
+          .bd-lang { display: none !important; }
+        }
+      `}</style>
+      <div
+        className="wrap"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: '64px',
+          gap: '16px',
+        }}
+      >
+        <Link
+          href="/"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            flexShrink: 0,
+            textDecoration: 'none',
+            color: 'var(--ink)',
+          }}
+        >
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              background: 'var(--forest)',
+              color: 'var(--paper)',
+              display: 'grid',
+              placeItems: 'center',
+              fontFamily: 'var(--serif)',
+              fontWeight: 700,
+              fontSize: '18px',
+              fontStyle: 'italic',
+              flexShrink: 0,
+            }}
+          >
+            b
           </div>
+          <div style={{ lineHeight: 1.1 }}>
+            <div
+              className="serif"
+              style={{
+                fontSize: '17px',
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Buget Deschis
+            </div>
+            <div
+              className="mono bd-header-subtitle"
+              style={{
+                fontSize: '10px',
+                color: 'var(--ink-3)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Moldova · 2024
+            </div>
+          </div>
+        </Link>
+
+        <nav style={{ display: 'flex', gap: '2px', flexShrink: 1, minWidth: 0 }}>
+          {NAV_ITEMS.map((it) => {
+            const active = isActive(it.href);
+            return (
+              <Link
+                key={it.href}
+                href={it.href}
+                className="bd-nav-btn"
+                style={{
+                  background: active ? 'var(--ink)' : 'transparent',
+                  color: active ? 'var(--paper)' : 'var(--ink)',
+                  padding: '8px 14px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  letterSpacing: '-0.005em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap',
+                  textDecoration: 'none',
+                }}
+              >
+                <span className="mono" style={{ fontSize: '9px', opacity: 0.6 }}>
+                  {it.num}
+                </span>
+                <span className="bd-nav-label">{t(it.key)}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div
+          className="mono bd-lang"
+          style={{ display: 'flex', gap: '4px', fontSize: '11px', flexShrink: 0 }}
+        >
+          {LOCALES.map((l) => (
+            <Link
+              key={l.code}
+              href={pathname}
+              locale={l.code}
+              style={{
+                background: l.code === locale ? 'var(--ink)' : 'transparent',
+                color: l.code === locale ? 'var(--paper)' : 'var(--ink-3)',
+                padding: '4px 8px',
+                fontFamily: 'var(--mono)',
+                fontSize: '10px',
+                textDecoration: 'none',
+              }}
+            >
+              {l.label}
+            </Link>
+          ))}
         </div>
       </div>
-
-      {/* Mobile Nav */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <nav className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
-                  isActive(href)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                )}
-              >
-                <Icon size={18} />
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
     </header>
   );
 }

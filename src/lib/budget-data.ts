@@ -1,18 +1,32 @@
 import type { BudgetYearData, BudgetTrend } from './types';
 
 export const BUDGET_COLORS: Record<string, string> = {
-  'social': '#3b82f6',
-  'education': '#10b981',
-  'health': '#f59e0b',
-  'general': '#8b5cf6',
-  'security': '#ef4444',
-  'economy': '#6366f1',
-  'defense': '#ec4899',
-  'environment': '#14b8a6',
-  'housing': '#06b6d4',
-  'culture': '#f97316',
-  'tech': '#a855f7',
-  'debt': '#64748b',
+  'social': 'var(--d-social)',
+  'education': 'var(--d-education)',
+  'health': 'var(--d-health)',
+  'general': 'var(--d-general)',
+  'security': 'var(--d-security)',
+  'economy': 'var(--d-economy)',
+  'defense': 'var(--d-defense)',
+  'environment': 'var(--d-environment)',
+  'housing': 'var(--d-housing)',
+  'culture': 'var(--d-culture)',
+  'tech': 'var(--d-economy)',
+  'debt': 'var(--d-debt)',
+};
+
+export const SECTOR_STORY: Record<string, string> = {
+  'social': 'Pensii, alocații, asistență',
+  'education': 'Școli, universități, burse',
+  'health': 'Spitale, CNAM, medicamente',
+  'general': 'Administrație, Parlament',
+  'security': 'Poliție, pompieri, justiție',
+  'economy': 'Drumuri, agricultură, IT',
+  'defense': 'Armata Națională',
+  'environment': 'Ape, păduri, deșeuri',
+  'debt': 'Dobânzi, amortizare',
+  'housing': 'Locuințe sociale, utilități',
+  'culture': 'Muzee, teatre, sport',
 };
 
 export const BUDGET_DATA: Record<number, BudgetYearData> = {

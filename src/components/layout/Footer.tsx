@@ -1,112 +1,98 @@
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
-import { Github, ExternalLink } from 'lucide-react';
 
 export default function Footer() {
   const t = useTranslations('footer');
 
+  const columns: Array<{ t: string; l: string[] }> = [
+    { t: t('columns.explore'), l: [t('links.budget'), t('links.procurement'), t('links.sectors'), t('links.authorities')] },
+    { t: t('columns.data'), l: ['API', 'CSV / JSON', 'OCDS', t('links.methodology')] },
+    { t: t('columns.project'), l: [t('links.about'), 'Cohesion Lab', 'GitHub', 'Contact'] },
+  ];
+
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">MD</span>
-              </div>
-              <div>
-                <div className="text-white font-bold text-base leading-tight">Buget Deschis Moldova</div>
-                <div className="text-gray-400 text-xs">Open Budget Moldova</div>
-              </div>
+    <footer style={{ background: 'var(--ink)', color: 'var(--paper)', padding: '56px 0 32px' }}>
+      <style>{`
+        @media (max-width: 900px) {
+          .bd-footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .bd-footer-bottom { flex-direction: column; align-items: flex-start !important; gap: 8px; }
+        }
+      `}</style>
+      <div className="wrap">
+        <div
+          className="bd-footer-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr 1fr 1fr',
+            gap: '40px',
+            marginBottom: '40px',
+          }}
+        >
+          <div>
+            <div
+              className="serif"
+              style={{
+                fontSize: '32px',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                marginBottom: '16px',
+                lineHeight: 1.1,
+              }}
+            >
+              {t('tagline')}
             </div>
-            <p className="text-sm text-gray-400 max-w-xs leading-relaxed mb-4">
+            <p style={{ color: 'var(--paper-3)', fontSize: '14px', maxWidth: '380px', lineHeight: 1.6 }}>
               {t('description')}
             </p>
-            <div className="flex items-center gap-3">
-              <a
-                href="https://github.com/ibrinzila/cohesionsite"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+            <div style={{ display: 'flex', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
+              <span
+                className="tag"
+                style={{ borderColor: 'var(--paper-3)', color: 'var(--paper)', background: 'transparent' }}
               >
-                <Github size={16} />
-                GitHub
-              </a>
-              <span className="text-gray-600">•</span>
-              <a
-                href="https://cohesionlab.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                EUPL-1.2
+              </span>
+              <span
+                className="tag"
+                style={{ borderColor: 'var(--paper-3)', color: 'var(--paper)', background: 'transparent' }}
               >
-                <ExternalLink size={14} />
-                cohesionlab.org
-              </a>
+                {t('legal.data')}
+              </span>
+              <span
+                className="tag"
+                style={{ borderColor: 'var(--paper-3)', color: 'var(--paper)', background: 'transparent' }}
+              >
+                OCDS 1.1
+              </span>
             </div>
           </div>
-
-          {/* Links */}
-          <div>
-            <h3 className="text-white font-semibold text-sm mb-4 uppercase tracking-wide">Platformă</h3>
-            <ul className="space-y-2">
-              {[
-                { href: '/budget', label: t('links.budget') },
-                { href: '/procurement', label: t('links.procurement') },
-                { href: '/about', label: t('links.about') },
-              ].map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
+          {columns.map((col) => (
+            <div key={col.t}>
+              <div className="eyebrow" style={{ color: 'var(--paper-3)', marginBottom: '12px' }}>
+                {col.t}
+              </div>
+              {col.l.map((l) => (
+                <div
+                  key={l}
+                  style={{ marginBottom: '8px', fontSize: '14px', color: 'var(--paper)' }}
+                >
+                  {l}
+                </div>
               ))}
-            </ul>
-          </div>
-
-          {/* Standards */}
-          <div>
-            <h3 className="text-white font-semibold text-sm mb-4 uppercase tracking-wide">Standarde</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="https://standard.open-contracting.org" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  OCDS 1.1
-                </a>
-              </li>
-              <li>
-                <a href="https://specs.frictionlessdata.io/fiscal-data-package/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  Fiscal Data Package
-                </a>
-              </li>
-              <li>
-                <a href="https://mtender.gov.md" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  MTender API
-                </a>
-              </li>
-              <li>
-                <a href="https://mf.gov.md" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  Ministerul Finanțelor
-                </a>
-              </li>
-            </ul>
-          </div>
+            </div>
+          ))}
         </div>
-
-        {/* Bottom bar */}
-        <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500">{t('copyright')}</p>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>{t('legal.license')}</span>
-            <span>•</span>
-            <span>{t('legal.data')}</span>
-            <span>•</span>
-            <Link href="/about" className="hover:text-gray-300 transition-colors">
-              {t('legal.privacy')}
-            </Link>
-          </div>
+        <hr style={{ border: 0, borderTop: '1px solid #333', margin: '24px 0' }} />
+        <div
+          className="bd-footer-bottom"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '12px',
+            color: 'var(--paper-3)',
+          }}
+        >
+          <div className="mono">{t('copyright')}</div>
+          <div className="mono">{t('updatedAt')}</div>
         </div>
       </div>
     </footer>
