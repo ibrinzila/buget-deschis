@@ -181,14 +181,15 @@ function FeaturesSection() {
 
 function TrendSection() {
   const t = useTranslations('home');
+  const tBudgetTrend = useTranslations('budget.trend');
 
   return (
     <section className="bg-white border-y border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2">
-            <h2 className="section-heading">{t('budget.trend.title')}</h2>
-            <p className="text-sm text-gray-500 mb-6">{t('budget.trend.subtitle')}</p>
+            <h2 className="section-heading">{tBudgetTrend('title')}</h2>
+            <p className="text-sm text-gray-500 mb-6">{tBudgetTrend('subtitle')}</p>
             <BudgetTimeSeries />
           </div>
           <div className="flex flex-col gap-4 justify-center">
