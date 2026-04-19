@@ -1,5 +1,46 @@
 import { NextResponse } from 'next/server';
-import { TENDERS, PROCUREMENT_STATS, searchTenders } from '@/lib/procurement-data';
+import { TENDERS as SEED_TENDERS, PROCUREMENT_STATS, searchTenders } from '@/lib/procurement-data';
+import type { Tender } from '@/lib/types';
+
+const SNAPSHOT_KEY = 'snapshot:tenders';
+
+// Try Cloudflare KV first; fall back to in-memory seed if the binding is
+// missing (local dev) or the snapshot hasn't been populated yet.
+async function loadTenders(): Promise<{ tenders: Tender[]; source: 'kv' | 'seed' }> {
+  try {
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const { env } = getCloudflareContext();
+    const kv = env?.MTENDER_KV;
+    if (kv) {
+      const raw = await kv.get(SNAPSHOT_KEY, { type: 'json' });
+      if (Array.isArray(raw) && raw.length > 0) {
+        return { tenders: raw as Tender[], source: 'kv' };
+      }
+    }
+  } catch {
+    // No CF context (e.g. `next dev` on plain node) — fall through to seed.
+  }
+  return { tenders: SEED_TENDERS, source: 'seed' };
+}
+
+function filterTenders(
+  tenders: Tender[],
+  query: string,
+  sector: string,
+  status: string
+): Tender[] {
+  const q = query.toLowerCase();
+  return tenders.filter((t) => {
+    const matchesQuery =
+      !q ||
+      t.title.toLowerCase().includes(q) ||
+      t.authority.toLowerCase().includes(q) ||
+      t.ocid.toLowerCase().includes(q);
+    const matchesSector = !sector || sector === 'all' || t.sector === sector;
+    const matchesStatus = !status || status === 'all' || t.status === status;
+    return matchesQuery && matchesSector && matchesStatus;
+  });
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,7 +51,11 @@ export async function GET(request: Request) {
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '20', 10), 100);
   const format = searchParams.get('format') ?? 'json';
 
-  const allResults = searchTenders(query, sector, status);
+  const { tenders, source } = await loadTenders();
+  const allResults =
+    source === 'kv'
+      ? filterTenders(tenders, query, sector, status)
+      : searchTenders(query, sector, status);
   const start = (page - 1) * limit;
   const paginated = allResults.slice(start, start + limit);
 
@@ -37,6 +82,7 @@ export async function GET(request: Request) {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': 'attachment; filename="moldova-procurement.csv"',
         'Access-Control-Allow-Origin': '*',
+        'X-Data-Source': source,
       },
     });
   }
@@ -47,6 +93,8 @@ export async function GET(request: Request) {
       source: 'MTender eProcurement System – Republic of Moldova',
       standard: 'OCDS 1.1 (Open Contracting Data Standard)',
       currency: 'MDL',
+      dataSource: source,
+      snapshotSize: source === 'kv' ? tenders.length : undefined,
       generated: new Date().toISOString(),
     },
     pagination: {
@@ -81,6 +129,7 @@ export async function GET(request: Request) {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Cache-Control': 'public, max-age=1800',
+      'X-Data-Source': source,
     },
   });
 }

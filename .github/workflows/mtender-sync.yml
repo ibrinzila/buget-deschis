@@ -1,0 +1,57 @@
+name: MTender sync
+
+on:
+  schedule:
+    # Every 6 hours. Adjust as needed.
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      max_batches:
+        description: 'Max batches to pull in one run (default 200 ~ 20k records)'
+        required: false
+        default: '200'
+
+concurrency:
+  group: mtender-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330 # just under GitHub's 6h free tier cap
+    env:
+      BASE_URL: ${{ secrets.MTENDER_SYNC_BASE_URL }}
+      SYNC_KEY: ${{ secrets.MTENDER_SYNC_KEY }}
+    steps:
+      - name: Validate secrets
+        run: |
+          if [ -z "$BASE_URL" ] || [ -z "$SYNC_KEY" ]; then
+            echo "Missing MTENDER_SYNC_BASE_URL or MTENDER_SYNC_KEY secret" >&2
+            exit 1
+          fi
+          echo "Target: ${BASE_URL%/}/api/mtender-sync"
+
+      - name: Loop sync batches until drained
+        run: |
+          set -euo pipefail
+          MAX=${{ github.event.inputs.max_batches || '200' }}
+          COUNT=0
+          ENDPOINT="${BASE_URL%/}/api/mtender-sync?key=${SYNC_KEY}"
+          while [ "$COUNT" -lt "$MAX" ]; do
+            RESP=$(curl -sS --max-time 60 "$ENDPOINT") || { echo "curl failed"; sleep 10; continue; }
+            echo "$RESP" | head -c 400; echo
+            OK=$(printf '%s' "$RESP" | jq -r '.ok // false')
+            DRAINED=$(printf '%s' "$RESP" | jq -r '.drained // false')
+            LISTED=$(printf '%s' "$RESP" | jq -r '.listed // 0')
+            if [ "$OK" != "true" ]; then
+              echo "Sync endpoint returned error" >&2
+              exit 1
+            fi
+            COUNT=$((COUNT + 1))
+            if [ "$DRAINED" = "true" ] || [ "$LISTED" = "0" ]; then
+              echo "Drained after $COUNT batch(es)."
+              break
+            fi
+            sleep 2
+          done
+          echo "Completed $COUNT batch(es)."

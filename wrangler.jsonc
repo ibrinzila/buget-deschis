@@ -10,5 +10,14 @@
   },
   "observability": {
     "enabled": true
-  }
+  },
+  // KV namespace for cached MTender snapshots. Create once with:
+  //   wrangler kv namespace create MTENDER_KV
+  // then paste the returned id below.
+  "kv_namespaces": [
+    {
+      "binding": "MTENDER_KV",
+      "id": "74e7b1b46ced4af899e6503bec7b7f1a"
+    }
+  ]
 }
