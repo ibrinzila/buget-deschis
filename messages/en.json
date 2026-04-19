@@ -199,7 +199,15 @@
       "eyebrow": "Auto-flagged",
       "title": "{count} risky procedures in current results",
       "desc": "Single bidder, high-value direct procurement, or low competition (≤2 bidders on contracts > 20M).",
-      "cta": "Show only these →"
+      "cta": "Show only these →",
+      "highlightsEyebrow": "High risk",
+      "highlightsTitle": "Largest flagged transactions",
+      "empty": "No flagged procedures match the current filters.",
+      "reason": {
+        "directHighValue": "direct > 20M",
+        "singleBidder": "single bidder",
+        "lowCompetition": "low competition"
+      }
     },
     "search": {
       "placeholder": "Search by object, contracting authority, supplier…",

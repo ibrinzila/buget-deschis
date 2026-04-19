@@ -21,11 +21,18 @@ function tenderTitle(t: Tender, locale: string) {
   return t.title;
 }
 
+type FlagReason = 'directHighValue' | 'singleBidder' | 'lowCompetition';
+
+function flagReasons(t: Tender): FlagReason[] {
+  const reasons: FlagReason[] = [];
+  if (t.method === 'direct' && t.value > 20_000_000) reasons.push('directHighValue');
+  if ((t.bids ?? 0) === 1 && t.status === 'awarded') reasons.push('singleBidder');
+  if (t.value > 20_000_000 && (t.bids ?? 0) <= 2) reasons.push('lowCompetition');
+  return reasons;
+}
+
 function isFlagged(t: Tender): boolean {
-  if (t.method === 'direct' && t.value > 20_000_000) return true;
-  if ((t.bids ?? 0) === 1 && t.status === 'awarded') return true;
-  if (t.value > 20_000_000 && (t.bids ?? 0) <= 2) return true;
-  return false;
+  return flagReasons(t).length > 0;
 }
 
 function Eyebrow({ num, children }: { num: string; children: React.ReactNode }) {
@@ -223,6 +230,17 @@ export default function ProcurementPage() {
   }, [baseResults]);
 
   const topSuppliersMax = Math.max(...topSuppliers.map((s) => s.volume), 1);
+
+  // Top 10 risk-flagged procedures by value, from the currently-filtered
+  // baseResults — so changing sector/search also narrows this surface.
+  const flaggedHighlights = useMemo(
+    () =>
+      baseResults
+        .filter(isFlagged)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10),
+    [baseResults]
+  );
 
   function resetFilters() {
     setQ('');
@@ -994,6 +1012,159 @@ export default function ProcurementPage() {
                   </div>
                 </li>
               ))}
+            </ol>
+          )}
+        </div>
+      </section>
+
+      {/* Flagged highlights */}
+      <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <Eyebrow num="E">{t('flag.highlightsEyebrow')}</Eyebrow>
+          <h2
+            className="serif"
+            style={{
+              fontSize: 'var(--fs-h1)',
+              fontWeight: 500,
+              margin: '0 0 16px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {t('flag.highlightsTitle')}
+          </h2>
+          <p
+            style={{
+              fontSize: '12px',
+              color: 'var(--ink-3)',
+              margin: '0 0 24px',
+              maxWidth: '680px',
+              fontStyle: 'italic',
+            }}
+          >
+            {t('flag.desc')}
+          </p>
+          {flaggedHighlights.length === 0 ? (
+            <div style={{ fontSize: '13px', color: 'var(--ink-3)', fontStyle: 'italic' }}>
+              {t('flag.empty')}
+            </div>
+          ) : (
+            <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {flaggedHighlights.map((x, i) => {
+                const reasons = flagReasons(x);
+                return (
+                  <li
+                    key={x.id}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '30px 1fr 140px',
+                      gap: '16px',
+                      alignItems: 'start',
+                      padding: '14px 8px',
+                      borderBottom: '1px solid var(--rule)',
+                      borderLeft: '3px solid var(--ochre)',
+                      paddingLeft: '14px',
+                    }}
+                  >
+                    <span
+                      className="mono"
+                      style={{ fontSize: '11px', color: 'var(--ink-3)', paddingTop: '2px' }}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.35 }}>
+                        {tenderTitle(x, locale)}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '2px' }}>
+                        <button
+                          onClick={() => {
+                            setQ(x.authority);
+                            if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          title={t('drill.authorityHint')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            margin: 0,
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            font: 'inherit',
+                            textDecoration: 'underline',
+                            textDecorationColor: 'var(--rule)',
+                          }}
+                        >
+                          {x.authority}
+                        </button>
+                        {' · '}
+                        {x.sector}
+                        {' · '}
+                        {x.publishedDate}
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          marginTop: '8px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: 'var(--mono)',
+                            fontSize: '10px',
+                            padding: '2px 8px',
+                            border: '1px solid var(--ink)',
+                            background:
+                              x.method === 'open'
+                                ? 'var(--paper)'
+                                : x.method === 'direct'
+                                ? 'var(--bad)'
+                                : 'var(--warn)',
+                            color: x.method === 'open' ? 'var(--ink)' : 'var(--paper)',
+                          }}
+                        >
+                          {t(`method.${x.method}`)}
+                        </span>
+                        {reasons.map((r) => (
+                          <span
+                            key={r}
+                            style={{
+                              fontFamily: 'var(--mono)',
+                              fontSize: '10px',
+                              padding: '2px 8px',
+                              border: '1px solid var(--ochre)',
+                              color: 'var(--ochre-2)',
+                              background: 'var(--paper)',
+                            }}
+                          >
+                            ⚐ {t(`flag.reason.${r}`)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div
+                        className="mono"
+                        style={{
+                          fontSize: '18px',
+                          fontWeight: 700,
+                          color: 'var(--ochre-2)',
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        {fmtMoney(x.value)}
+                      </div>
+                      <div
+                        className="mono"
+                        style={{ fontSize: '10px', color: 'var(--ink-3)', marginTop: '2px' }}
+                      >
+                        MDL
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           )}
           <p style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '24px', fontStyle: 'italic' }}>
