@@ -45,7 +45,10 @@ export async function GET(request: Request) {
 
   const started = Date.now();
 
-  let cursor = (await kv.get(CURSOR_KEY)) ?? MTENDER_BOOTSTRAP_FROM;
+  // Explicit ?cursor= bypasses KV (avoids read-after-write staleness across
+  // invocations); falls back to KV, then to bootstrap constant.
+  const cursorParam = url.searchParams.get('cursor');
+  let cursor = cursorParam ?? (await kv.get(CURSOR_KEY)) ?? MTENDER_BOOTSTRAP_FROM;
 
   const listBefore = cursor;
   const page = await listTenders(cursor);

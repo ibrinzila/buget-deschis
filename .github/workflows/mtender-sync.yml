@@ -38,13 +38,23 @@ jobs:
           COUNT=0
           FAILS=0
           MAX_FAILS=5
-          ENDPOINT="${BASE_URL%/}/api/mtender-sync?key=${SYNC_KEY}"
+          BASE="${BASE_URL%/}/api/mtender-sync?key=${SYNC_KEY}"
+          # Thread the cursor through request/response to sidestep KV
+          # read-after-write staleness across Worker invocations.
+          CURSOR=""
           while [ "$COUNT" -lt "$MAX" ]; do
-            RESP=$(curl -sS --max-time 60 "$ENDPOINT") || RESP=""
+            if [ -n "$CURSOR" ]; then
+              ENCODED=$(printf '%s' "$CURSOR" | jq -sRr @uri)
+              URL="${BASE}&cursor=${ENCODED}"
+            else
+              URL="$BASE"
+            fi
+            RESP=$(curl -sS --max-time 60 "$URL") || RESP=""
             echo "$RESP" | head -c 400; echo
             OK=$(printf '%s' "$RESP" | jq -r '.ok // false' 2>/dev/null || echo false)
             DRAINED=$(printf '%s' "$RESP" | jq -r '.drained // false' 2>/dev/null || echo false)
             LISTED=$(printf '%s' "$RESP" | jq -r '.listed // 0' 2>/dev/null || echo 0)
+            NEXT=$(printf '%s' "$RESP" | jq -r '.newCursor // empty' 2>/dev/null || echo "")
             if [ "$OK" != "true" ]; then
               FAILS=$((FAILS + 1))
               echo "Batch error ($FAILS/$MAX_FAILS). Backing off..." >&2
@@ -57,6 +67,7 @@ jobs:
             fi
             FAILS=0
             COUNT=$((COUNT + 1))
+            [ -n "$NEXT" ] && CURSOR="$NEXT"
             if [ "$DRAINED" = "true" ] || [ "$LISTED" = "0" ]; then
               echo "Drained after $COUNT batch(es)."
               break
