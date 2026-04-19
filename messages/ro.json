@@ -227,6 +227,11 @@
       "direct": "DIRECT",
       "limited": "LIMITAT"
     },
+    "drill": {
+      "sectorHint": "Click pentru a filtra după acest sector",
+      "authorityHint": "Click pentru a filtra după această autoritate",
+      "statusHint": "Click pentru a filtra după acest status"
+    },
     "chart": {
       "eyebrow": "Volum pe sector",
       "title": "Transportul și Sănătatea cumpără cel mai mult în 2024.",

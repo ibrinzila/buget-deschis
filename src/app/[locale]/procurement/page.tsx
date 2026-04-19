@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { PROCUREMENT_STATS, PROCUREMENT_SECTORS } from '@/lib/procurement-data';
+import { PROCUREMENT_SECTORS } from '@/lib/procurement-data';
 import type { Tender } from '@/lib/types';
 
 function fmtNum(n: number) {
@@ -75,8 +75,6 @@ export default function ProcurementPage() {
     };
   }, []);
 
-  const stats = PROCUREMENT_STATS;
-
   const baseResults = useMemo(() => {
     const qq = q.toLowerCase();
     return tenders.filter((tx) => {
@@ -112,6 +110,30 @@ export default function ProcurementPage() {
     return Array.from(map.entries())
       .map(([s, v]) => ({ sector: s, ...v }))
       .sort((a, b) => b.volume - a.volume);
+  }, [tenders]);
+
+  const liveStats = useMemo(() => {
+    const total = tenders.length;
+    let active = 0;
+    let awarded = 0;
+    let cancelled = 0;
+    let volume = 0;
+    let competitive = 0;
+    for (const tx of tenders) {
+      volume += tx.value;
+      if (tx.status === 'active') active++;
+      else if (tx.status === 'awarded' || tx.status === 'complete') awarded++;
+      else if (tx.status === 'cancelled') cancelled++;
+      if (tx.method === 'open' || (tx.bids ?? 0) >= 2) competitive++;
+    }
+    return {
+      total,
+      active,
+      awarded,
+      cancelled,
+      volume,
+      competitiveRate: total > 0 ? (competitive / total) * 100 : 0,
+    };
   }, [tenders]);
   const maxVol = Math.max(...sectorVolumes.map((s) => s.volume), 1);
   const totalVolumeAll = sectorVolumes.reduce((a, x) => a + x.volume, 0);
@@ -167,37 +189,41 @@ export default function ProcurementPage() {
           {[
             {
               l: t('stats.procedures'),
-              v: fmtNum(stats.totalProcedures),
+              v: loading ? '…' : fmtNum(liveStats.total),
               sub: t('stats.proceduresSub'),
               tone: 'ink' as const,
             },
             {
               l: t('stats.active'),
-              v: fmtNum(stats.activeTenders),
+              v: loading ? '…' : fmtNum(liveStats.active),
               sub: t('stats.activeSub'),
               tone: 'forest' as const,
             },
             {
               l: t('stats.awarded'),
-              v: fmtNum(stats.awardedContracts),
+              v: loading ? '…' : fmtNum(liveStats.awarded),
               sub: t('stats.awardedSub'),
               tone: 'forest' as const,
             },
             {
               l: t('stats.cancelled'),
-              v: fmtNum(stats.cancelledTenders),
+              v: loading ? '…' : fmtNum(liveStats.cancelled),
               sub: t('stats.cancelledSub'),
               tone: 'bad' as const,
             },
             {
               l: t('stats.volume'),
-              v: `${(stats.totalVolumeMDL / 1e9).toFixed(1)} mld`,
+              v: loading
+                ? '…'
+                : liveStats.volume >= 1e9
+                ? `${(liveStats.volume / 1e9).toFixed(1)} mld`
+                : `${(liveStats.volume / 1e6).toFixed(0)} mil`,
               sub: t('stats.volumeSub'),
               tone: 'ink' as const,
             },
             {
               l: t('stats.competitive'),
-              v: `${stats.competitiveRate.toFixed(0)}%`,
+              v: loading ? '…' : `${liveStats.competitiveRate.toFixed(0)}%`,
               sub: t('stats.competitiveSub'),
               tone: 'ochre' as const,
             },
@@ -426,7 +452,27 @@ export default function ProcurementPage() {
                         </div>
                       </td>
                       <td style={{ padding: '14px', fontSize: '12px', color: 'var(--ink-2)' }}>
-                        {x.authority}
+                        <button
+                          onClick={() => setQ(x.authority)}
+                          title={t('drill.authorityHint')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            margin: 0,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            font: 'inherit',
+                            textDecoration: q === x.authority ? 'underline' : 'none',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.textDecoration = q === x.authority ? 'underline' : 'none')
+                          }
+                        >
+                          {x.authority}
+                        </button>
                       </td>
                       <td
                         style={{
@@ -460,8 +506,15 @@ export default function ProcurementPage() {
                         </span>
                       </td>
                       <td style={{ padding: '14px' }}>
-                        <span
+                        <button
+                          onClick={() => {
+                            const target = x.status === 'complete' ? 'awarded' : x.status;
+                            setStatus(target === status ? 'all' : (target as typeof status));
+                          }}
+                          title={t('drill.statusHint')}
                           style={{
+                            background: 'none',
+                            cursor: 'pointer',
                             fontFamily: 'var(--mono)',
                             fontSize: '10px',
                             padding: '3px 8px',
@@ -483,7 +536,7 @@ export default function ProcurementPage() {
                           {x.status === 'complete'
                             ? t('status.awarded')
                             : t(`status.${x.status}`)}
-                        </span>
+                        </button>
                         {flagged && (
                           <span
                             title="Risc"
@@ -543,18 +596,29 @@ export default function ProcurementPage() {
             {t('chart.title')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {sectorVolumes.map((s) => (
+            {sectorVolumes.map((s) => {
+              const isActive = sector === s.sector;
+              return (
               <div
                 key={s.sector}
                 className="bd-bar-row"
+                onClick={() => {
+                  setSector(isActive ? 'all' : s.sector);
+                  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                title={t('drill.sectorHint')}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '180px 1fr 120px 60px',
                   gap: '16px',
                   alignItems: 'center',
+                  cursor: 'pointer',
+                  padding: '6px 8px',
+                  background: isActive ? 'var(--paper-2)' : 'transparent',
+                  outline: isActive ? '1px solid var(--forest)' : 'none',
                 }}
               >
-                <div style={{ fontSize: '14px', fontWeight: 500 }}>{s.sector}</div>
+                <div style={{ fontSize: '14px', fontWeight: isActive ? 600 : 500 }}>{s.sector}</div>
                 <div style={{ height: '28px', background: 'var(--paper-2)', position: 'relative' }}>
                   <div
                     style={{
@@ -592,7 +656,8 @@ export default function ProcurementPage() {
                   {((s.volume / totalVolumeAll) * 100).toFixed(1)}%
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
           <p style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '24px', fontStyle: 'italic' }}>
             {t('source')}

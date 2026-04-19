@@ -227,6 +227,11 @@
       "direct": "DIRECT",
       "limited": "LIMITED"
     },
+    "drill": {
+      "sectorHint": "Click to filter by this sector",
+      "authorityHint": "Click to filter by this authority",
+      "statusHint": "Click to filter by this status"
+    },
     "chart": {
       "eyebrow": "Volume by sector",
       "title": "Transport and Healthcare buy the most in 2024.",
