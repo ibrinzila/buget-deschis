@@ -9,6 +9,13 @@ function fmtNum(n: number) {
   return new Intl.NumberFormat('ro-MD', { maximumFractionDigits: 0 }).format(n);
 }
 
+function fmtMoney(n: number): string {
+  if (n >= 1e9) return `${(n / 1e9).toFixed(1)} mld`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(0)} mil`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(0)} k`;
+  return fmtNum(n);
+}
+
 function tenderTitle(t: Tender, locale: string) {
   if (locale === 'ru' && t.titleRu) return t.titleRu;
   return t.title;
@@ -47,12 +54,16 @@ function Eyebrow({ num, children }: { num: string; children: React.ReactNode }) 
   );
 }
 
+const MONTH_LABELS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+type StatusFilter = 'all' | 'planning' | 'active' | 'awarded' | 'cancelled';
+
 export default function ProcurementPage() {
   const t = useTranslations('procurement');
   const locale = useLocale();
 
   const [q, setQ] = useState('');
-  const [status, setStatus] = useState<'all' | 'active' | 'awarded' | 'cancelled'>('all');
+  const [status, setStatus] = useState<StatusFilter>('all');
   const [sector, setSector] = useState<string>('all');
   const [onlyFlagged, setOnlyFlagged] = useState(false);
   const [tenders, setTenders] = useState<Tender[]>([]);
@@ -75,6 +86,22 @@ export default function ProcurementPage() {
     };
   }, []);
 
+  // Derive the year range from the actual data. If we have 2022→now, label
+  // it "2022–2025"; if only one year is present, collapse to a single year.
+  const yearRange = useMemo(() => {
+    if (tenders.length === 0) return '—';
+    let min = Infinity;
+    let max = -Infinity;
+    for (const tx of tenders) {
+      const y = Number(tx.publishedDate?.slice(0, 4));
+      if (!Number.isFinite(y)) continue;
+      if (y < min) min = y;
+      if (y > max) max = y;
+    }
+    if (!Number.isFinite(min)) return '—';
+    return min === max ? String(min) : `${min}–${max}`;
+  }, [tenders]);
+
   const baseResults = useMemo(() => {
     const qq = q.toLowerCase();
     return tenders.filter((tx) => {
@@ -84,7 +111,10 @@ export default function ProcurementPage() {
         tx.authority.toLowerCase().includes(qq) ||
         tx.ocid.toLowerCase().includes(qq);
       const matchesSector = sector === 'all' || tx.sector === sector;
-      const matchesStatus = status === 'all' || tx.status === status;
+      const matchesStatus =
+        status === 'all' ||
+        tx.status === status ||
+        (status === 'awarded' && tx.status === 'complete');
       return matchesQuery && matchesSector && matchesStatus;
     });
   }, [tenders, q, sector, status]);
@@ -114,6 +144,7 @@ export default function ProcurementPage() {
 
   const liveStats = useMemo(() => {
     const total = tenders.length;
+    let planning = 0;
     let active = 0;
     let awarded = 0;
     let cancelled = 0;
@@ -121,22 +152,77 @@ export default function ProcurementPage() {
     let competitive = 0;
     for (const tx of tenders) {
       volume += tx.value;
-      if (tx.status === 'active') active++;
+      if (tx.status === 'planning') planning++;
+      else if (tx.status === 'active') active++;
       else if (tx.status === 'awarded' || tx.status === 'complete') awarded++;
       else if (tx.status === 'cancelled') cancelled++;
       if (tx.method === 'open' || (tx.bids ?? 0) >= 2) competitive++;
     }
     return {
       total,
+      planning,
       active,
       awarded,
       cancelled,
       volume,
       competitiveRate: total > 0 ? (competitive / total) * 100 : 0,
+      cancelledPct: total > 0 ? (cancelled / total) * 100 : 0,
     };
   }, [tenders]);
+
   const maxVol = Math.max(...sectorVolumes.map((s) => s.volume), 1);
   const totalVolumeAll = sectorVolumes.reduce((a, x) => a + x.volume, 0);
+
+  // Monthly timeline: YYYY-MM → {volume, count}. Only populated from records
+  // that have a valid publishedDate.
+  const timeline = useMemo(() => {
+    const map = new Map<string, { volume: number; count: number }>();
+    for (const tx of tenders) {
+      const ym = tx.publishedDate?.slice(0, 7);
+      if (!ym || ym.length !== 7) continue;
+      const prev = map.get(ym) ?? { volume: 0, count: 0 };
+      map.set(ym, { volume: prev.volume + tx.value, count: prev.count + 1 });
+    }
+    return Array.from(map.entries())
+      .map(([ym, v]) => ({ ym, ...v }))
+      .sort((a, b) => a.ym.localeCompare(b.ym));
+  }, [tenders]);
+
+  const timelineMaxVol = Math.max(...timeline.map((m) => m.volume), 1);
+
+  // Top 10 buyers by aggregate spend. Authority names are the group key.
+  const topBuyers = useMemo(() => {
+    const map = new Map<string, { volume: number; count: number }>();
+    for (const tx of baseResults) {
+      if (!tx.authority || tx.authority === '—') continue;
+      const prev = map.get(tx.authority) ?? { volume: 0, count: 0 };
+      map.set(tx.authority, { volume: prev.volume + tx.value, count: prev.count + 1 });
+    }
+    return Array.from(map.entries())
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.volume - a.volume)
+      .slice(0, 10);
+  }, [baseResults]);
+
+  const topBuyersMax = Math.max(...topBuyers.map((b) => b.volume), 1);
+
+  // Top 10 suppliers: group by winner. Most records still lack winners so
+  // this surface can be empty — we render a note in that case.
+  const topSuppliers = useMemo(() => {
+    const map = new Map<string, { volume: number; count: number }>();
+    for (const tx of baseResults) {
+      const w = tx.winner;
+      if (!w) continue;
+      const prev = map.get(w) ?? { volume: 0, count: 0 };
+      map.set(w, { volume: prev.volume + tx.value, count: prev.count + 1 });
+    }
+    return Array.from(map.entries())
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.volume - a.volume)
+      .slice(0, 10);
+  }, [baseResults]);
+
+  const topSuppliersMax = Math.max(...topSuppliers.map((s) => s.volume), 1);
 
   function resetFilters() {
     setQ('');
@@ -175,7 +261,9 @@ export default function ProcurementPage() {
             {t('titlePre')} <em style={{ color: 'var(--forest)' }}>{t('titleEm')}</em> {t('titlePost')}
           </h1>
           <p style={{ fontSize: '17px', lineHeight: 1.55, color: 'var(--ink-2)', margin: 0, maxWidth: '680px' }}>
-            {t('subtitle')}
+            {loading
+              ? t('loading')
+              : t('subtitle', { total: fmtNum(liveStats.total), range: yearRange })}
           </p>
         </div>
       </section>
@@ -184,13 +272,19 @@ export default function ProcurementPage() {
       <section style={{ borderBottom: '1px solid var(--ink)', background: 'var(--paper-2)' }}>
         <div
           className="wrap bd-stats-row"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0 }}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0 }}
         >
           {[
             {
               l: t('stats.procedures'),
               v: loading ? '…' : fmtNum(liveStats.total),
-              sub: t('stats.proceduresSub'),
+              sub: t('stats.proceduresSub', { range: yearRange }),
+              tone: 'ink' as const,
+            },
+            {
+              l: t('stats.planning'),
+              v: loading ? '…' : fmtNum(liveStats.planning),
+              sub: t('stats.planningSub'),
               tone: 'ink' as const,
             },
             {
@@ -208,17 +302,13 @@ export default function ProcurementPage() {
             {
               l: t('stats.cancelled'),
               v: loading ? '…' : fmtNum(liveStats.cancelled),
-              sub: t('stats.cancelledSub'),
+              sub: t('stats.cancelledSub', { pct: liveStats.cancelledPct.toFixed(1) }),
               tone: 'bad' as const,
             },
             {
               l: t('stats.volume'),
-              v: loading
-                ? '…'
-                : liveStats.volume >= 1e9
-                ? `${(liveStats.volume / 1e9).toFixed(1)} mld`
-                : `${(liveStats.volume / 1e6).toFixed(0)} mil`,
-              sub: t('stats.volumeSub'),
+              v: loading ? '…' : fmtMoney(liveStats.volume),
+              sub: t('stats.volumeSub', { range: yearRange }),
               tone: 'ink' as const,
             },
             {
@@ -228,14 +318,14 @@ export default function ProcurementPage() {
               tone: 'ochre' as const,
             },
           ].map((s, i) => (
-            <div key={i} style={{ padding: '24px 20px', borderRight: i < 5 ? '1px solid var(--ink)' : 'none' }}>
+            <div key={i} style={{ padding: '24px 20px', borderRight: i < 6 ? '1px solid var(--ink)' : 'none' }}>
               <div className="eyebrow" style={{ marginBottom: '8px' }}>
                 {s.l}
               </div>
               <div
                 className="serif"
                 style={{
-                  fontSize: '26px',
+                  fontSize: '24px',
                   lineHeight: 1,
                   fontWeight: 500,
                   color:
@@ -346,7 +436,7 @@ export default function ProcurementPage() {
             </div>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value as typeof status)}
+              onChange={(e) => setStatus(e.target.value as StatusFilter)}
               style={{
                 padding: '12px 14px',
                 border: '1px solid var(--ink)',
@@ -356,6 +446,7 @@ export default function ProcurementPage() {
               }}
             >
               <option value="all">{t('search.allStatuses')}</option>
+              <option value="planning">{t('status.planning')}</option>
               <option value="active">{t('status.active')}</option>
               <option value="awarded">{t('status.awarded')}</option>
               <option value="cancelled">{t('status.cancelled')}</option>
@@ -426,6 +517,16 @@ export default function ProcurementPage() {
               <tbody>
                 {results.map((x) => {
                   const flagged = isFlagged(x);
+                  const badgeColor =
+                    x.status === 'planning'
+                      ? 'var(--ink-3)'
+                      : x.status === 'active'
+                      ? 'var(--forest)'
+                      : x.status === 'cancelled'
+                      ? 'var(--bad)'
+                      : 'var(--ink)';
+                  const statusKey =
+                    x.status === 'complete' ? 'awarded' : (x.status as Exclude<Tender['status'], 'complete'>);
                   return (
                     <tr
                       key={x.id}
@@ -508,8 +609,9 @@ export default function ProcurementPage() {
                       <td style={{ padding: '14px' }}>
                         <button
                           onClick={() => {
-                            const target = x.status === 'complete' ? 'awarded' : x.status;
-                            setStatus(target === status ? 'all' : (target as typeof status));
+                            const target: StatusFilter =
+                              x.status === 'complete' ? 'awarded' : (x.status as StatusFilter);
+                            setStatus(target === status ? 'all' : target);
                           }}
                           title={t('drill.statusHint')}
                           style={{
@@ -519,23 +621,11 @@ export default function ProcurementPage() {
                             fontSize: '10px',
                             padding: '3px 8px',
                             border: '1px solid',
-                            borderColor:
-                              x.status === 'active'
-                                ? 'var(--forest)'
-                                : x.status === 'cancelled'
-                                ? 'var(--bad)'
-                                : 'var(--ink)',
-                            color:
-                              x.status === 'active'
-                                ? 'var(--forest)'
-                                : x.status === 'cancelled'
-                                ? 'var(--bad)'
-                                : 'var(--ink)',
+                            borderColor: badgeColor,
+                            color: badgeColor,
                           }}
                         >
-                          {x.status === 'complete'
-                            ? t('status.awarded')
-                            : t(`status.${x.status}`)}
+                          {t(`status.${statusKey}`)}
                         </button>
                         {flagged && (
                           <span
@@ -659,6 +749,253 @@ export default function ProcurementPage() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Monthly timeline */}
+      {timeline.length > 0 && (
+        <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+          <div className="wrap">
+            <Eyebrow num="B">{t('timeline.eyebrow')}</Eyebrow>
+            <h2
+              className="serif"
+              style={{
+                fontSize: 'var(--fs-h1)',
+                fontWeight: 500,
+                margin: '0 0 32px',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {t('timeline.title')}
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${timeline.length}, minmax(18px, 1fr))`,
+                gap: '4px',
+                alignItems: 'end',
+                height: '220px',
+                borderBottom: '1px solid var(--ink)',
+                paddingBottom: '2px',
+              }}
+            >
+              {timeline.map((m) => {
+                const h = (m.volume / timelineMaxVol) * 100;
+                const [y, mo] = m.ym.split('-');
+                return (
+                  <div
+                    key={m.ym}
+                    title={`${y}-${mo} · ${fmtMoney(m.volume)} MDL · ${m.count} ${t('timeline.procedures')}`}
+                    style={{
+                      height: `${Math.max(h, 1)}%`,
+                      background: 'var(--forest)',
+                      position: 'relative',
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <div
+              className="mono"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${timeline.length}, minmax(18px, 1fr))`,
+                gap: '4px',
+                fontSize: '9px',
+                color: 'var(--ink-3)',
+                marginTop: '6px',
+                textAlign: 'center',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {timeline.map((m) => {
+                const mo = Number(m.ym.slice(5, 7));
+                const y = m.ym.slice(2, 4);
+                return (
+                  <span key={m.ym}>
+                    {mo === 1 ? `'${y}` : MONTH_LABELS[mo - 1]}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Top buyers */}
+      <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <Eyebrow num="C">{t('topBuyers.eyebrow')}</Eyebrow>
+          <h2
+            className="serif"
+            style={{
+              fontSize: 'var(--fs-h1)',
+              fontWeight: 500,
+              margin: '0 0 32px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {t('topBuyers.title')}
+          </h2>
+          {topBuyers.length === 0 ? (
+            <div style={{ fontSize: '13px', color: 'var(--ink-3)', fontStyle: 'italic' }}>
+              {t('topBuyers.empty')}
+            </div>
+          ) : (
+            <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {topBuyers.map((b, i) => (
+                <li
+                  key={b.name}
+                  onClick={() => {
+                    setQ(b.name);
+                    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  title={t('drill.authorityHint')}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '30px 1fr 120px 100px',
+                    gap: '16px',
+                    alignItems: 'center',
+                    padding: '10px 8px',
+                    borderBottom: '1px solid var(--rule)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span
+                    className="mono"
+                    style={{ fontSize: '11px', color: 'var(--ink-3)' }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.3 }}>{b.name}</div>
+                    <div
+                      style={{
+                        height: '6px',
+                        background: 'var(--paper-2)',
+                        marginTop: '6px',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: `${(b.volume / topBuyersMax) * 100}%`,
+                          background: 'var(--forest)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="mono"
+                    style={{ fontSize: '13px', fontWeight: 600, textAlign: 'right' }}
+                  >
+                    {fmtMoney(b.volume)}
+                  </div>
+                  <div
+                    className="mono"
+                    style={{ fontSize: '11px', color: 'var(--ink-3)', textAlign: 'right' }}
+                  >
+                    {b.count} {t('topBuyers.procedures')}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </section>
+
+      {/* Top suppliers */}
+      <section style={{ padding: '56px 0', borderBottom: '1px solid var(--ink)' }}>
+        <div className="wrap">
+          <Eyebrow num="D">{t('topSuppliers.eyebrow')}</Eyebrow>
+          <h2
+            className="serif"
+            style={{
+              fontSize: 'var(--fs-h1)',
+              fontWeight: 500,
+              margin: '0 0 16px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {t('topSuppliers.title')}
+          </h2>
+          <p
+            style={{
+              fontSize: '12px',
+              color: 'var(--ink-3)',
+              margin: '0 0 24px',
+              maxWidth: '680px',
+              fontStyle: 'italic',
+            }}
+          >
+            {t('topSuppliers.note')}
+          </p>
+          {topSuppliers.length === 0 ? (
+            <div style={{ fontSize: '13px', color: 'var(--ink-3)', fontStyle: 'italic' }}>
+              {t('topSuppliers.empty')}
+            </div>
+          ) : (
+            <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {topSuppliers.map((s, i) => (
+                <li
+                  key={s.name}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '30px 1fr 120px 100px',
+                    gap: '16px',
+                    alignItems: 'center',
+                    padding: '10px 8px',
+                    borderBottom: '1px solid var(--rule)',
+                  }}
+                >
+                  <span
+                    className="mono"
+                    style={{ fontSize: '11px', color: 'var(--ink-3)' }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.3 }}>{s.name}</div>
+                    <div
+                      style={{
+                        height: '6px',
+                        background: 'var(--paper-2)',
+                        marginTop: '6px',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: `${(s.volume / topSuppliersMax) * 100}%`,
+                          background: 'var(--ochre)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="mono"
+                    style={{ fontSize: '13px', fontWeight: 600, textAlign: 'right' }}
+                  >
+                    {fmtMoney(s.volume)}
+                  </div>
+                  <div
+                    className="mono"
+                    style={{ fontSize: '11px', color: 'var(--ink-3)', textAlign: 'right' }}
+                  >
+                    {s.count} {t('topSuppliers.contracts')}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
           <p style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '24px', fontStyle: 'italic' }}>
             {t('source')}
           </p>

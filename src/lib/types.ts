@@ -38,7 +38,7 @@ export interface Tender {
   sectorRo: string;
   value: number; // MDL
   currency: string;
-  status: 'active' | 'awarded' | 'cancelled' | 'complete';
+  status: 'planning' | 'active' | 'awarded' | 'cancelled' | 'complete';
   method: 'open' | 'limited' | 'direct';
   publishedDate: string;
   deadlineDate: string;

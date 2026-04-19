@@ -92,8 +92,8 @@ const METHOD_MAP: Record<string, Tender['method']> = {
 };
 
 const STATUS_MAP: Record<string, Tender['status']> = {
-  planning: 'active',
-  planned: 'active',
+  planning: 'planning',
+  planned: 'planning',
   active: 'active',
   tendering: 'active',
   cancelled: 'cancelled',
@@ -115,8 +115,12 @@ export function normalize(rec: OcdsRecord): Tender | null {
   const award = cr.awards?.find((a) => a.status === 'active') ?? cr.awards?.[0];
   const winner = award?.suppliers?.[0]?.name;
 
+  // Award presence trumps the tender-level status: if MTender recorded an
+  // active award, the procedure resulted in a contract, regardless of whether
+  // the tender-level status was still left at 'active' or 'complete'.
   const rawStatus = (t.statusDetails ?? t.status ?? 'active').toLowerCase();
-  const status: Tender['status'] = STATUS_MAP[rawStatus] ?? 'active';
+  let status: Tender['status'] = STATUS_MAP[rawStatus] ?? 'planning';
+  if (winner && status !== 'cancelled') status = 'awarded';
   const rawMethod = (t.procurementMethod ?? 'open').toLowerCase();
   const method: Tender['method'] = METHOD_MAP[rawMethod] ?? 'open';
 

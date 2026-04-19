@@ -177,18 +177,21 @@
     "titlePre": "Who buys,",
     "titleEm": "from whom",
     "titlePost": ", with what money?",
-    "subtitle": "Real-time data from MTender. 112,380 procedures in 2024. OCDS 1.1 standard — the same used by the UK, Ukraine and Mexico.",
+    "subtitle": "Real-time data from MTender. {total} procedures recorded ({range}). OCDS 1.1 standard — the same used by the UK, Ukraine and Mexico.",
+    "loading": "Loading MTender data…",
     "stats": {
       "procedures": "Procedures",
-      "proceduresSub": "year 2024",
-      "active": "Active now",
-      "activeSub": "closing in 30 days",
+      "proceduresSub": "{range}",
+      "planning": "Planned",
+      "planningSub": "notice published",
+      "active": "In progress",
+      "activeSub": "tender open",
       "awarded": "Awarded",
       "awardedSub": "contracts signed",
       "cancelled": "Cancelled",
-      "cancelledSub": "1.9% of total",
+      "cancelledSub": "{pct}% of total",
       "volume": "Total volume",
-      "volumeSub": "MDL · 2024",
+      "volumeSub": "MDL · {range}",
       "competitive": "Competitive rate",
       "competitiveSub": "≥ 2 bidders"
     },
@@ -218,6 +221,7 @@
       "bids": "Bidders"
     },
     "status": {
+      "planning": "PLANNED",
       "active": "ACTIVE",
       "awarded": "AWARDED",
       "cancelled": "CANCELLED"
@@ -234,8 +238,29 @@
     },
     "chart": {
       "eyebrow": "Volume by sector",
-      "title": "Transport and Healthcare buy the most in 2024.",
+      "title": "Procurement distribution across economic sectors.",
       "procedures": "procedures"
+    },
+    "timeline": {
+      "eyebrow": "Monthly trend",
+      "title": "When is public money spent?",
+      "unit": "mil MDL",
+      "procedures": "procedures"
+    },
+    "topBuyers": {
+      "eyebrow": "Who buys",
+      "title": "Most active contracting authorities",
+      "volume": "volume",
+      "procedures": "procedures",
+      "empty": "No data for this filter."
+    },
+    "topSuppliers": {
+      "eyebrow": "Who wins",
+      "title": "Top suppliers to the state",
+      "note": "Winner data is only available for completed procedures. Coverage grows as more contracts are published.",
+      "volume": "volume",
+      "contracts": "contracts",
+      "empty": "No winner data yet for this filter."
     },
     "source": "Source: MTender API (OCDS 1.1) · Updated daily at 04:00 EEST"
   },

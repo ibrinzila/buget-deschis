@@ -177,18 +177,21 @@
     "titlePre": "Cine cumpără,",
     "titleEm": "de la cine",
     "titlePost": ", cu ce bani?",
-    "subtitle": "Date în timp real din platforma MTender. 112 380 proceduri în 2024. Standardul OCDS 1.1 — același folosit de Marea Britanie, Ucraina și Mexic.",
+    "subtitle": "Date în timp real din platforma MTender. {total} proceduri înregistrate ({range}). Standardul OCDS 1.1 — același folosit de Marea Britanie, Ucraina și Mexic.",
+    "loading": "Se încarcă datele din MTender…",
     "stats": {
       "procedures": "Proceduri",
-      "proceduresSub": "anul 2024",
-      "active": "Active acum",
-      "activeSub": "se închid în 30 zile",
+      "proceduresSub": "{range}",
+      "planning": "În planificare",
+      "planningSub": "notificare publicată",
+      "active": "În desfășurare",
+      "activeSub": "licitații deschise",
       "awarded": "Atribuite",
       "awardedSub": "contracte semnate",
       "cancelled": "Anulate",
-      "cancelledSub": "1.9% din total",
+      "cancelledSub": "{pct}% din total",
       "volume": "Volum total",
-      "volumeSub": "MDL · 2024",
+      "volumeSub": "MDL · {range}",
       "competitive": "Rată competitivă",
       "competitiveSub": "≥ 2 ofertanți"
     },
@@ -218,6 +221,7 @@
       "bids": "Ofertanți"
     },
     "status": {
+      "planning": "ÎN PLANIFICARE",
       "active": "ACTIV",
       "awarded": "ATRIBUIT",
       "cancelled": "ANULAT"
@@ -234,8 +238,29 @@
     },
     "chart": {
       "eyebrow": "Volum pe sector",
-      "title": "Transportul și Sănătatea cumpără cel mai mult în 2024.",
+      "title": "Distribuția achizițiilor pe sectoare economice.",
       "procedures": "proceduri"
+    },
+    "timeline": {
+      "eyebrow": "Evoluție lunară",
+      "title": "Când se cheltuie banii publici?",
+      "unit": "mil MDL",
+      "procedures": "proceduri"
+    },
+    "topBuyers": {
+      "eyebrow": "Cine cumpără",
+      "title": "Cele mai active autorități contractante",
+      "volume": "volum",
+      "procedures": "proceduri",
+      "empty": "Nu există date pentru acest filtru."
+    },
+    "topSuppliers": {
+      "eyebrow": "Cine câștigă",
+      "title": "Principalii furnizori ai statului",
+      "note": "Datele despre câștigători sunt disponibile doar pentru proceduri finalizate. Acoperirea crește pe măsură ce se publică mai multe contracte.",
+      "volume": "volum",
+      "contracts": "contracte",
+      "empty": "Încă nu există date despre câștigători pentru acest filtru."
     },
     "source": "Sursă: MTender API (OCDS 1.1) · Actualizat zilnic la 04:00 EEST"
   },
