@@ -1,0 +1,55 @@
+name: MTender wipe
+
+# Manual-dispatch only. Clears the KV snapshot + cursor + sync meta so the
+# next MTender sync run rebootstraps from scratch. Use this after a schema
+# change (e.g. dual-write of raw OCDS) to avoid a split-brain snapshot.
+# Orphan ocds:* keys are left in place — they're harmless and will be
+# overwritten as sync revisits each OCID.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type WIPE to confirm. Anything else is a no-op.'
+        required: true
+        default: ''
+
+concurrency:
+  group: mtender-wipe
+  cancel-in-progress: false
+
+jobs:
+  wipe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE_URL: ${{ secrets.MTENDER_SYNC_BASE_URL }}
+      SYNC_KEY: ${{ secrets.MTENDER_SYNC_KEY }}
+    steps:
+      - name: Check confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "WIPE" ]; then
+            echo "Confirmation not given (expected 'WIPE'). Aborting." >&2
+            exit 1
+          fi
+
+      - name: Validate secrets
+        run: |
+          if [ -z "$BASE_URL" ] || [ -z "$SYNC_KEY" ]; then
+            echo "Missing MTENDER_SYNC_BASE_URL or MTENDER_SYNC_KEY secret" >&2
+            exit 1
+          fi
+          echo "Target: ${BASE_URL%/}/api/mtender-wipe"
+
+      - name: POST /api/mtender-wipe
+        run: |
+          set -euo pipefail
+          URL="${BASE_URL%/}/api/mtender-wipe?key=${SYNC_KEY}"
+          RESP=$(curl -sS -X POST --max-time 30 "$URL")
+          echo "$RESP"
+          OK=$(printf '%s' "$RESP" | jq -r '.ok // false' 2>/dev/null || echo false)
+          if [ "$OK" != "true" ]; then
+            echo "Wipe failed." >&2
+            exit 1
+          fi
+          echo "Wipe complete. Trigger the MTender sync workflow next."
