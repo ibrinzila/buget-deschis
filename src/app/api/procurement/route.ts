@@ -2,23 +2,32 @@ import { NextResponse } from 'next/server';
 import { TENDERS as SEED_TENDERS, PROCUREMENT_STATS, searchTenders } from '@/lib/procurement-data';
 import type { Tender } from '@/lib/types';
 
-const SNAPSHOT_KEY = 'snapshot:tenders';
+const TENDER_PREFIX = 'tender:';
 
-// Try Cloudflare KV first; fall back to in-memory seed if the binding is
-// missing (local dev) or the snapshot hasn't been populated yet.
+// Load tenders from KV using kv.list() + per-key metadata. This is O(1) CPU
+// regardless of total KV size — metadata is returned inline by list(), no
+// value fetches needed. Falls back to in-memory seed for local dev.
 async function loadTenders(): Promise<{ tenders: Tender[]; source: 'kv' | 'seed' }> {
   try {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare');
     const { env } = getCloudflareContext();
     const kv = env?.MTENDER_KV;
     if (kv) {
-      const raw = await kv.get(SNAPSHOT_KEY, { type: 'json' });
-      if (Array.isArray(raw) && raw.length > 0) {
-        return { tenders: raw as Tender[], source: 'kv' };
+      const tenders: Tender[] = [];
+      let cursor: string | undefined;
+      do {
+        const result = await kv.list<Tender>({ prefix: TENDER_PREFIX, cursor, limit: 1000 });
+        for (const entry of result.keys) {
+          if (entry.metadata) tenders.push(entry.metadata);
+        }
+        cursor = result.list_complete ? undefined : result.cursor;
+      } while (cursor);
+      if (tenders.length > 0) {
+        return { tenders, source: 'kv' };
       }
     }
   } catch {
-    // No CF context (e.g. `next dev` on plain node) — fall through to seed.
+    // No CF context (e.g. `next dev`) — fall through to seed.
   }
   return { tenders: SEED_TENDERS, source: 'seed' };
 }
@@ -87,8 +96,6 @@ export async function GET(request: Request) {
     });
   }
 
-  // Raw mode: return plain Tender[] (no OCDS wrapping, no pagination). Used by
-  // the procurement page for client-side filtering over the full snapshot.
   if (format === 'raw') {
     return NextResponse.json(
       { source, total: allResults.length, tenders: allResults },
