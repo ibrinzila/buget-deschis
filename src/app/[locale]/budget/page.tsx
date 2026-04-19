@@ -3,7 +3,10 @@
 import { useState, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { BUDGET_DATA, BUDGET_TREND, AVAILABLE_YEARS, SECTOR_STORY, computeSectorPct } from '@/lib/budget-data';
+import { getBudgetMeta } from '@/lib/budget-meta';
 import type { BudgetSector, BudgetYearData, Locale } from '@/lib/types';
+
+const meta = getBudgetMeta();
 
 type ViewKey = 'approved' | 'revised' | 'actual';
 
@@ -47,11 +50,11 @@ export default function BudgetPage() {
   const t = useTranslations('budget');
   const locale = useLocale() as Locale;
 
-  const [year, setYear] = useState<number>(2024);
+  const [year, setYear] = useState<number>(meta.latestYear);
   const [view, setView] = useState<ViewKey>('approved');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const rawData = BUDGET_DATA[year] ?? BUDGET_DATA[2024]!;
+  const rawData = BUDGET_DATA[year] ?? BUDGET_DATA[meta.latestYear]!;
   const data: BudgetYearData = useMemo(() => computeSectorPct(rawData), [rawData]);
   const total = data.totalApproved;
 
@@ -212,13 +215,21 @@ export default function BudgetPage() {
               sub: `${(topSector.pct ?? 0).toFixed(1)}% ${t('summary.topSectorSub')}`,
               tone: 'ink' as const,
             },
-            {
-              l: t('summary.euFunds'),
-              v: ((BUDGET_TREND.find((b) => b.year === year)?.euFunds ?? 9400) / 1000).toFixed(1),
-              u: t('summary.unit'),
-              sub: t('summary.euFundsSub'),
-              tone: 'ochre' as const,
-            },
+            (() => {
+              const euNow = BUDGET_TREND.find((b) => b.year === year)?.euFunds ?? 0;
+              const euPrev = BUDGET_TREND.find((b) => b.year === year - 1)?.euFunds ?? 0;
+              const euYoY = euPrev ? ((euNow - euPrev) / euPrev) * 100 : null;
+              return {
+                l: t('summary.euFunds'),
+                v: (euNow / 1000).toFixed(1),
+                u: t('summary.unit'),
+                sub:
+                  euYoY === null
+                    ? '—'
+                    : `${euYoY >= 0 ? '↑' : '↓'} ${Math.abs(euYoY).toFixed(1)}% vs ${year - 1}`,
+                tone: 'ochre' as const,
+              };
+            })(),
             {
               l: t('summary.perCapita'),
               v: `~${fmt(Math.round((data.totalApproved * 1_000_000) / 2_600_000 / 1000) * 1000)}`,
@@ -746,7 +757,7 @@ function SectorDetail({
 
       <div style={{ marginBottom: '16px' }}>
         <div className="eyebrow" style={{ marginBottom: '8px' }}>
-          {t('detail.trend')}
+          {t('detail.trend', { range: meta.rangeLabel })}
         </div>
         <svg viewBox="0 0 200 50" style={{ width: '100%', height: '50px' }}>
           {trendPts.map((p, i) => {

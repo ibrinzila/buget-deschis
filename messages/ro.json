@@ -14,26 +14,26 @@
       "titleEm": "cei 100 de miliarde",
       "titlePost": "ai Moldovei?",
       "subtitle": "Bugetul de stat, achizițiile publice și contractele guvernamentale — toate într-un loc, actualizate zilnic, complet libere.",
-      "subtitleEm": "Ianuarie 2024 – Decembrie 2024.",
+      "subtitleEm": "Anul fiscal {year}.",
       "ctaBudget": "Explorează bugetul →",
       "ctaProcurement": "Caută în achiziții",
-      "asideEyebrow": "Bugetul 2024, pe scurt",
+      "asideEyebrow": "Bugetul pe scurt",
       "asideEuro": "≈ 5,1 mld € · 38 000 lei pe cetățean",
       "kpiExecuted": "Executat",
-      "kpiExecutedSub": "93.1% din aprobat",
-      "kpiProcurement": "Achiziții 2024",
-      "kpiProcurementSub": "112 380 proceduri",
+      "kpiExecutedSub": "{pct}% din aprobat",
+      "kpiProcurement": "Achiziții {year}",
+      "kpiProcurementSub": "proceduri · {range}",
       "kpiObi": "Open Budget Index",
       "kpiObiSub": "locul 5 mondial ↑",
       "kpiEu": "Fonduri UE",
-      "kpiEuSub": "↑ 20.5% vs 2023"
+      "kpiEuSub": "↑ {pct}% vs {prevYear}"
     },
     "treemap": {
       "eyebrow": "Compoziția bugetului",
       "titlePre": "Fiecare dreptunghi e un sector. Dimensiunea",
       "titleEm": "e banii tăi",
       "titlePost": ".",
-      "lead": "Clasificare COFOG a Națiunilor Unite. 11 sectoare funcționale. Trei dintre ele — Protecția Socială, Educația și Sănătatea — absorb 62% din bugetul 2024.",
+      "lead": "Clasificare COFOG a Națiunilor Unite. 11 sectoare funcționale. Trei dintre ele — Protecția Socială, Educația și Sănătatea — absorb majoritatea bugetului.",
       "hint": "→ Treceți cursorul peste un sector pentru detalii",
       "approved": "APROBAT",
       "executed": "EXECUTAT",
@@ -41,11 +41,11 @@
       "ofBudget": "din buget"
     },
     "trend": {
-      "eyebrow": "Tendință · 2019–2024",
+      "eyebrow": "Tendință · {range}",
       "titlePre": "Bugetul a crescut cu",
-      "titleEm": "61%",
-      "titlePost": "în șase ani.",
-      "lead": "De la 62.3 la 100.0 miliarde MDL în termeni nominali. Fondurile UE au crescut de 4,5× în aceeași perioadă, semnalând acces intensificat la finanțare europeană.",
+      "titleEm": "{pct}%",
+      "titlePost": "în {years} ani.",
+      "lead": "De la {from} la {to} miliarde MDL în termeni nominali. Fondurile UE au crescut de {multiple}× în aceeași perioadă, semnalând acces intensificat la finanțare europeană.",
       "approved": "Aprobat",
       "executed": "Executat",
       "euFunds": "Fonduri UE",
@@ -81,7 +81,7 @@
       "suffix": "lei",
       "titlePost": "pe lună...",
       "lead": "...contribui aproximativ {amount} lei pe an la bugetul Moldovei, prin impozit pe venit, contribuții sociale și TVA.",
-      "intro": "Iată unde merg banii tăi, proporțional cu bugetul 2024:",
+      "intro": "Iată unde merg banii tăi, proporțional cu bugetul {year}:",
       "income": "Venit lunar net (lei)",
       "annual": "Anual contribui aprox.",
       "estimated": "ESTIMAT",
@@ -90,11 +90,10 @@
     },
     "highlights": {
       "eyebrow": "De reținut",
-      "title": "Trei cifre care definesc anul bugetar 2024.",
+      "title": "Trei cifre care definesc anul bugetar {year}.",
       "one": {
-        "stat": "+61%",
-        "label": "Creștere buget 2019→2024",
-        "body": "De la 62.3 la 100.0 mld MDL. În termeni reali, corectat cu inflația, creșterea e de aproximativ 28%."
+        "label": "Creștere buget {range}",
+        "body": "De la {from} la {to} mld MDL. În termeni reali, corectat cu inflația, creșterea e sensibil mai mică."
       },
       "two": {
         "stat": "81/100",
@@ -102,9 +101,8 @@
         "body": "Moldova a urcat de pe locul 47 pe locul 5 global între 2017 și 2023. Singura țară est-europeană în top 5."
       },
       "three": {
-        "stat": "385K",
-        "label": "Proceduri MTender 2018–2024",
-        "body": "Valoare cumulată: 113 mld MDL. Rata de competitivitate a crescut de la 61% (2018) la 74% (2024)."
+        "label": "Proceduri MTender în baza platformei · {range}",
+        "body": "Snapshot local actualizat zilnic din MTender pentru intervalul {range}. Volum cumulat și rata de competitivitate se recalculează pe măsură ce pipeline-ul pune toate contractele în KV."
       }
     },
     "cta": {
@@ -149,7 +147,7 @@
       "ofBudget": "din buget",
       "executed": "Executat",
       "executionRate": "Rată execuție",
-      "trend": "Tendință 2019 → 2024",
+      "trend": "Tendință {range}",
       "subCategories": "Vezi toate subcategoriile →",
       "downloadCsv": "↓ CSV sector",
       "unit": "mil MDL"

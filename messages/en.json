@@ -14,26 +14,26 @@
       "titleEm": "Moldova's 100 billion",
       "titlePost": "go?",
       "subtitle": "State budget, public procurement and government contracts — all in one place, updated daily, completely free.",
-      "subtitleEm": "January 2024 – December 2024.",
+      "subtitleEm": "Fiscal year {year}.",
       "ctaBudget": "Explore the budget →",
       "ctaProcurement": "Search procurement",
-      "asideEyebrow": "2024 budget at a glance",
+      "asideEyebrow": "Budget at a glance",
       "asideEuro": "≈ €5.1 bn · 38,000 lei per citizen",
       "kpiExecuted": "Executed",
-      "kpiExecutedSub": "93.1% of approved",
-      "kpiProcurement": "Procurement 2024",
-      "kpiProcurementSub": "112,380 procedures",
+      "kpiExecutedSub": "{pct}% of approved",
+      "kpiProcurement": "Procurement {year}",
+      "kpiProcurementSub": "procedures · {range}",
       "kpiObi": "Open Budget Index",
       "kpiObiSub": "5th worldwide ↑",
       "kpiEu": "EU Funds",
-      "kpiEuSub": "↑ 20.5% vs 2023"
+      "kpiEuSub": "↑ {pct}% vs {prevYear}"
     },
     "treemap": {
       "eyebrow": "Budget composition",
       "titlePre": "Each rectangle is a sector. Size",
       "titleEm": "is your money",
       "titlePost": ".",
-      "lead": "COFOG classification (United Nations). 11 functional sectors. Three of them — Social Protection, Education and Healthcare — absorb 62% of the 2024 budget.",
+      "lead": "COFOG classification (United Nations). 11 functional sectors. Three of them — Social Protection, Education and Healthcare — absorb the majority of the budget.",
       "hint": "→ Hover a sector for details",
       "approved": "APPROVED",
       "executed": "EXECUTED",
@@ -41,11 +41,11 @@
       "ofBudget": "of budget"
     },
     "trend": {
-      "eyebrow": "Trend · 2019–2024",
+      "eyebrow": "Trend · {range}",
       "titlePre": "The budget grew by",
-      "titleEm": "61%",
-      "titlePost": "in six years.",
-      "lead": "From 62.3 to 100.0 billion MDL in nominal terms. EU funds grew 4.5× in the same period, signalling intensified access to European financing.",
+      "titleEm": "{pct}%",
+      "titlePost": "in {years} years.",
+      "lead": "From {from} to {to} billion MDL in nominal terms. EU funds grew {multiple}× in the same period, signalling intensified access to European financing.",
       "approved": "Approved",
       "executed": "Executed",
       "euFunds": "EU Funds",
@@ -81,7 +81,7 @@
       "suffix": "lei",
       "titlePost": "per month...",
       "lead": "...you contribute roughly {amount} lei per year to Moldova's budget, through income tax, social contributions and VAT.",
-      "intro": "Here's where your money goes, proportional to the 2024 budget:",
+      "intro": "Here's where your money goes, proportional to the {year} budget:",
       "income": "Net monthly income (lei)",
       "annual": "Annual contribution ≈",
       "estimated": "ESTIMATED",
@@ -90,11 +90,10 @@
     },
     "highlights": {
       "eyebrow": "Takeaways",
-      "title": "Three figures that define fiscal year 2024.",
+      "title": "Three figures that define fiscal year {year}.",
       "one": {
-        "stat": "+61%",
-        "label": "Budget growth 2019→2024",
-        "body": "From 62.3 to 100.0 bn MDL. In real terms, adjusted for inflation, growth is around 28%."
+        "label": "Budget growth {range}",
+        "body": "From {from} to {to} bn MDL. In real terms, adjusted for inflation, growth is noticeably smaller."
       },
       "two": {
         "stat": "81/100",
@@ -102,9 +101,8 @@
         "body": "Moldova climbed from 47th to 5th globally between 2017 and 2023. Only Eastern-European country in the top 5."
       },
       "three": {
-        "stat": "385K",
-        "label": "MTender procedures 2018–2024",
-        "body": "Cumulative value: 113 bn MDL. Competitive rate rose from 61% (2018) to 74% (2024)."
+        "label": "MTender procedures in the platform · {range}",
+        "body": "Local snapshot updated nightly from MTender for the {range} range. Cumulative volume and competitive rate are recomputed as the pipeline pulls every contract into KV."
       }
     },
     "cta": {
@@ -149,7 +147,7 @@
       "ofBudget": "of budget",
       "executed": "Executed",
       "executionRate": "Execution rate",
-      "trend": "Trend 2019 → 2024",
+      "trend": "Trend {range}",
       "subCategories": "See all subcategories →",
       "downloadCsv": "↓ CSV sector",
       "unit": "mil MDL"
