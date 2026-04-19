@@ -11,13 +11,16 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-// One batch does: advance cursor by one list page (≤100 OCIDs), parallel-fetch
-// those detail records, normalize, merge into the snapshot blob, persist.
-// Designed to stay inside the 30s Worker CPU ceiling on the free tier.
+// One batch: list up to 100 OCIDs, but only detail-fetch MAX_DETAIL_FETCHES of
+// them to stay under Cloudflare's free-tier 50-subrequest/invocation cap.
+// Budget: 1 (list) + 40 (details) + 3 (KV get+put×2) = 44. Cursor advances
+// only to the last processed record so the next call picks up the rest without
+// gaps; dedup-by-ocid handles any overlap on re-listing.
 
 const SNAPSHOT_KEY = 'snapshot:tenders';
 const CURSOR_KEY = 'state:cursor';
 const DETAIL_CONCURRENCY = 10;
+const MAX_DETAIL_FETCHES = 40;
 
 export async function GET(request: Request) {
   const { env } = getCloudflareContext();
@@ -47,12 +50,18 @@ export async function GET(request: Request) {
   const listBefore = cursor;
   const page = await listTenders(cursor);
   const fetched = page.data ?? [];
-  const newCursor = page.offset ?? cursor;
+  // Only fetch details for the first N items; advance cursor to the last
+  // processed item's date so the next call re-lists from there (no gaps).
+  const toFetch = fetched.slice(0, MAX_DETAIL_FETCHES);
+  const newCursor =
+    toFetch.length > 0
+      ? toFetch[toFetch.length - 1].date
+      : (page.offset ?? cursor);
 
   // Detail fetches in parallel, skipping 404s and logging per-record failures.
   const errors: Array<{ ocid: string; err: string }> = [];
   const normalized = await mapParallel(
-    fetched,
+    toFetch,
     DETAIL_CONCURRENCY,
     async (item): Promise<Tender | null> => {
       const rec = await fetchRecord(item.ocid);
@@ -83,13 +92,14 @@ export async function GET(request: Request) {
       listBefore,
       newCursor,
       listed: fetched.length,
+      fetched: toFetch.length,
       normalized: normalized.length,
       snapshotSize: merged.length,
       errors: errors.slice(0, 5),
       elapsedMs,
-      // Heuristic: if we got a full 100-item page, there's almost certainly more
-      // to pull; caller can loop until listed < 100.
-      drained: fetched.length < 100,
+      // Drained when the list page was smaller than a full page AND we processed
+      // all of it in this invocation.
+      drained: fetched.length < 100 && toFetch.length === fetched.length,
     },
     { headers: { 'Cache-Control': 'no-store' } }
   );
