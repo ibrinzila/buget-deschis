@@ -2,12 +2,14 @@ name: MTender sync
 
 on:
   schedule:
-    # Every 6 hours. Adjust as needed.
-    - cron: '17 */6 * * *'
+    # Nightly at 02:17 UTC (05:17 EEST). Bootstrap is intentionally slow —
+    # one pass per day is plenty once the historical backfill is caught up,
+    # and MTender rarely publishes > a few dozen new tenders per day.
+    - cron: '17 2 * * *'
   workflow_dispatch:
     inputs:
       max_batches:
-        description: 'Max batches to pull in one run (default 200 ~ 20k records)'
+        description: 'Max batches to pull in one run (default 200 ~ 4k records at 20/batch)'
         required: false
         default: '200'
 

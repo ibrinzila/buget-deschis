@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import SyncMarker from './SyncMarker';
 
 export default function Footer() {
   const t = useTranslations('footer');
@@ -92,7 +93,9 @@ export default function Footer() {
           }}
         >
           <div className="mono">{t('copyright')}</div>
-          <div className="mono">{t('updatedAt')}</div>
+          <div className="mono">
+            <SyncMarker fallback={t('updatedAt')} />
+          </div>
         </div>
       </div>
     </footer>

@@ -13,14 +13,18 @@ export const dynamic = 'force-dynamic';
 
 // One batch: list up to 100 OCIDs, but only detail-fetch MAX_DETAIL_FETCHES of
 // them to stay under Cloudflare's free-tier 50-subrequest/invocation cap.
-// Budget: 1 (list) + 40 (details) + 3 (KV get+put×2) = 44. Cursor advances
+// Budget with dual-write: 1 (list) + 20 (details) + 20 (ocds puts) + 1 (snapshot
+// get) + 1 (snapshot put) + 1 (cursor put) + 2 (meta puts) = 46. Cursor advances
 // only to the last processed record so the next call picks up the rest without
 // gaps; dedup-by-ocid handles any overlap on re-listing.
 
 const SNAPSHOT_KEY = 'snapshot:tenders';
 const CURSOR_KEY = 'state:cursor';
+const LAST_SYNC_KEY = 'state:lastSync';
+const COUNT_KEY = 'state:count';
+const OCDS_PREFIX = 'ocds:';
 const DETAIL_CONCURRENCY = 10;
-const MAX_DETAIL_FETCHES = 40;
+const MAX_DETAIL_FETCHES = 20;
 
 export async function GET(request: Request) {
   const { env } = getCloudflareContext();
@@ -53,15 +57,16 @@ export async function GET(request: Request) {
   const listBefore = cursor;
   const page = await listTenders(cursor);
   const fetched = page.data ?? [];
-  // Only fetch details for the first N items; advance cursor to the last
-  // processed item's date so the next call re-lists from there (no gaps).
   const toFetch = fetched.slice(0, MAX_DETAIL_FETCHES);
   const newCursor =
     toFetch.length > 0
       ? toFetch[toFetch.length - 1].date
       : (page.offset ?? cursor);
 
-  // Detail fetches in parallel, skipping 404s and logging per-record failures.
+  // Detail fetches in parallel. For each record we (a) write the raw OCDS
+  // compiledRelease to `ocds:<ocid>` so detail pages can render everything
+  // the public API exposes without re-fetching, and (b) return the normalized
+  // Tender for the snapshot merge below.
   const errors: Array<{ ocid: string; err: string }> = [];
   const normalized = await mapParallel(
     toFetch,
@@ -69,6 +74,10 @@ export async function GET(request: Request) {
     async (item): Promise<Tender | null> => {
       const rec = await fetchRecord(item.ocid);
       if (!rec) return null;
+      const compiled = rec.records?.[0]?.compiledRelease;
+      if (compiled) {
+        await kv.put(OCDS_PREFIX + item.ocid, JSON.stringify(compiled));
+      }
       return normalize(rec);
     },
     (item, err) => errors.push({ ocid: item.ocid, err: String(err).slice(0, 120) })
@@ -86,6 +95,8 @@ export async function GET(request: Request) {
 
   await kv.put(SNAPSHOT_KEY, JSON.stringify(merged));
   await kv.put(CURSOR_KEY, newCursor);
+  await kv.put(LAST_SYNC_KEY, new Date().toISOString());
+  await kv.put(COUNT_KEY, String(merged.length));
 
   const elapsedMs = Date.now() - started;
 
