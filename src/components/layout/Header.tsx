@@ -106,7 +106,7 @@ export default function Header() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Moldova · 2024
+              Moldova
             </div>
           </div>
         </Link>
