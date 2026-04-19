@@ -87,6 +87,21 @@ export async function GET(request: Request) {
     });
   }
 
+  // Raw mode: return plain Tender[] (no OCDS wrapping, no pagination). Used by
+  // the procurement page for client-side filtering over the full snapshot.
+  if (format === 'raw') {
+    return NextResponse.json(
+      { source, total: allResults.length, tenders: allResults },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=1800',
+          'X-Data-Source': source,
+        },
+      }
+    );
+  }
+
   const response = {
     meta: {
       title: 'Moldova Public Procurement – MTender Data',

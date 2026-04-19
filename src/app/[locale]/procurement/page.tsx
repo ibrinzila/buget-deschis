@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { TENDERS, PROCUREMENT_STATS, PROCUREMENT_SECTORS, searchTenders } from '@/lib/procurement-data';
+import { PROCUREMENT_STATS, PROCUREMENT_SECTORS } from '@/lib/procurement-data';
 import type { Tender } from '@/lib/types';
 
 function fmtNum(n: number) {
@@ -55,10 +55,42 @@ export default function ProcurementPage() {
   const [status, setStatus] = useState<'all' | 'active' | 'awarded' | 'cancelled'>('all');
   const [sector, setSector] = useState<string>('all');
   const [onlyFlagged, setOnlyFlagged] = useState(false);
+  const [tenders, setTenders] = useState<Tender[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/procurement?format=raw')
+      .then((r) => r.json())
+      .then((d: { tenders?: Tender[] }) => {
+        if (cancelled) return;
+        setTenders(Array.isArray(d.tenders) ? d.tenders : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const stats = PROCUREMENT_STATS;
 
-  const baseResults = useMemo(() => searchTenders(q, sector, status), [q, sector, status]);
+  const baseResults = useMemo(() => {
+    const qq = q.toLowerCase();
+    return tenders.filter((tx) => {
+      const matchesQuery =
+        !qq ||
+        tx.title.toLowerCase().includes(qq) ||
+        tx.authority.toLowerCase().includes(qq) ||
+        tx.ocid.toLowerCase().includes(qq);
+      const matchesSector = sector === 'all' || tx.sector === sector;
+      const matchesStatus = status === 'all' || tx.status === status;
+      return matchesQuery && matchesSector && matchesStatus;
+    });
+  }, [tenders, q, sector, status]);
+
   const results = useMemo(
     () => (onlyFlagged ? baseResults.filter(isFlagged) : baseResults),
     [baseResults, onlyFlagged]
@@ -73,14 +105,14 @@ export default function ProcurementPage() {
 
   const sectorVolumes = useMemo(() => {
     const map = new Map<string, { volume: number; count: number }>();
-    for (const tx of TENDERS) {
+    for (const tx of tenders) {
       const prev = map.get(tx.sector) ?? { volume: 0, count: 0 };
       map.set(tx.sector, { volume: prev.volume + tx.value, count: prev.count + 1 });
     }
     return Array.from(map.entries())
       .map(([s, v]) => ({ sector: s, ...v }))
       .sort((a, b) => b.volume - a.volume);
-  }, []);
+  }, [tenders]);
   const maxVol = Math.max(...sectorVolumes.map((s) => s.volume), 1);
   const totalVolumeAll = sectorVolumes.reduce((a, x) => a + x.volume, 0);
 
@@ -329,7 +361,7 @@ export default function ProcurementPage() {
             className="mono"
             style={{ fontSize: '11px', color: 'var(--ink-3)', marginBottom: '12px' }}
           >
-            {results.length} {t('search.results')} {TENDERS.length} · {t('search.totalVolume')}{' '}
+            {loading ? '…' : `${results.length} ${t('search.results')} ${tenders.length}`} · {t('search.totalVolume')}{' '}
             {fmtNum(Math.round(totalResultsVolume / 1e6))} {t('search.million')}
           </div>
 
