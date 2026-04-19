@@ -72,6 +72,36 @@ docker build -t buget-deschis .
 docker run -p 3000:3000 buget-deschis
 ```
 
+### MTender live sync (Cloudflare Workers + KV)
+
+The `/api/procurement` route prefers a KV-cached snapshot of normalized MTender
+records and falls back to seed data when the snapshot is empty. Wiring the
+pipeline once:
+
+1. **Create the KV namespace** and paste the returned `id` into `wrangler.jsonc`
+   under `kv_namespaces[0].id`:
+   ```bash
+   npx wrangler kv namespace create MTENDER_KV
+   ```
+2. **Set the sync secret** on the deployed Worker (used to authorize the sync
+   endpoint):
+   ```bash
+   npx wrangler secret put MTENDER_SYNC_KEY
+   ```
+3. **Deploy**: `npm run deploy` (defined in `package.json`).
+4. **GitHub Actions cron**: add two repo secrets under Settings → Secrets:
+   - `MTENDER_SYNC_BASE_URL` — e.g. `https://buget-deschis.cohesionlab.org`
+   - `MTENDER_SYNC_KEY` — same value as the Worker secret
+   The workflow at `.github/workflows/mtender-sync.yml` then runs every 6h.
+5. **Bootstrap (2022 → now)**: trigger the workflow manually with
+   `workflow_dispatch` a handful of times to drain the historical backlog. Each
+   batch advances the cursor by one page (100 OCIDs); each run loops up to
+   ~200 batches.
+
+Normalized tender records are ~300 B each, so the full 2022–present window
+(~450k records) stays well under the KV free-tier 1 GB cap and the 1k
+writes/day ceiling (one aggregate blob write per batch).
+
 ---
 
 ## Structura proiectului
