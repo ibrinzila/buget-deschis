@@ -199,7 +199,15 @@
       "eyebrow": "Semnalizat automat",
       "title": "{count} proceduri cu risc în rezultatele actuale",
       "desc": "Ofertant unic, tip „achiziție directă\" de mare valoare, sau concurență scăzută (≤2 ofertanți pe contracte > 20M).",
-      "cta": "Arată doar acestea →"
+      "cta": "Arată doar acestea →",
+      "highlightsEyebrow": "Risc ridicat",
+      "highlightsTitle": "Cele mai mari tranzacții semnalizate",
+      "empty": "Nu există proceduri semnalizate cu filtrele actuale.",
+      "reason": {
+        "directHighValue": "achiziție directă > 20M",
+        "singleBidder": "ofertant unic",
+        "lowCompetition": "concurență scăzută"
+      }
     },
     "search": {
       "placeholder": "Caută după obiect, autoritate contractantă, furnizor…",
