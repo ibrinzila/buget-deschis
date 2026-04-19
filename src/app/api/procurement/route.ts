@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { TENDERS as SEED_TENDERS, PROCUREMENT_STATS, searchTenders } from '@/lib/procurement-data';
 import type { Tender } from '@/lib/types';
 
-export const runtime = 'edge';
-
 const SNAPSHOT_KEY = 'snapshot:tenders';
 
 // Try Cloudflare KV first; fall back to in-memory seed if the binding is

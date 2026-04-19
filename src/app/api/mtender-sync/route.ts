@@ -9,7 +9,6 @@ import {
   mapParallel,
 } from '@/lib/mtender';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 // One batch does: advance cursor by one list page (≤100 OCIDs), parallel-fetch
