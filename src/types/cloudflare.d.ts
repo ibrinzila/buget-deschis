@@ -11,11 +11,11 @@ interface KVNamespace {
     options?: { expiration?: number; expirationTtl?: number; metadata?: unknown }
   ): Promise<void>;
   delete(key: string): Promise<void>;
-  list(options?: {
+  list<Meta = unknown>(options?: {
     prefix?: string;
     limit?: number;
     cursor?: string;
-  }): Promise<{ keys: Array<{ name: string }>; list_complete: boolean; cursor?: string }>;
+  }): Promise<{ keys: Array<{ name: string; metadata?: Meta }>; list_complete: boolean; cursor?: string }>;
 }
 
 interface CloudflareEnv {
