@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { PROCUREMENT_SECTORS } from '@/lib/procurement-data';
 import type { Tender } from '@/lib/types';
@@ -68,6 +70,7 @@ type StatusFilter = 'all' | 'planning' | 'active' | 'awarded' | 'cancelled';
 export default function ProcurementPage() {
   const t = useTranslations('procurement');
   const locale = useLocale();
+  const router = useRouter();
 
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
@@ -549,6 +552,7 @@ export default function ProcurementPage() {
                     <tr
                       key={x.id}
                       style={{ borderBottom: '1px solid var(--rule)', cursor: 'pointer' }}
+                      onClick={() => router.push(`/${locale}/procurement/${encodeURIComponent(x.ocid)}`)}
                       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--paper-2)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
@@ -572,7 +576,10 @@ export default function ProcurementPage() {
                       </td>
                       <td style={{ padding: '14px', fontSize: '12px', color: 'var(--ink-2)' }}>
                         <button
-                          onClick={() => setQ(x.authority)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQ(x.authority);
+                          }}
                           title={t('drill.authorityHint')}
                           style={{
                             background: 'none',
@@ -626,7 +633,8 @@ export default function ProcurementPage() {
                       </td>
                       <td style={{ padding: '14px' }}>
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             const target: StatusFilter =
                               x.status === 'complete' ? 'awarded' : (x.status as StatusFilter);
                             setStatus(target === status ? 'all' : target);
@@ -1072,9 +1080,22 @@ export default function ProcurementPage() {
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.35 }}>
+                      <Link
+                        href={`/${locale}/procurement/${encodeURIComponent(x.ocid)}`}
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          lineHeight: 1.35,
+                          color: 'var(--ink)',
+                          textDecoration: 'none',
+                          borderBottom: '1px solid transparent',
+                          display: 'inline',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.borderBottomColor = 'var(--ink)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.borderBottomColor = 'transparent')}
+                      >
                         {tenderTitle(x, locale)}
-                      </div>
+                      </Link>
                       <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '2px' }}>
                         <button
                           onClick={() => {

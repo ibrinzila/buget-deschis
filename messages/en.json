@@ -268,7 +268,127 @@
       "contracts": "contracts",
       "empty": "No winner data yet for this filter."
     },
-    "source": "Source: MTender API (OCDS 1.1) · Updated daily at 04:00 EEST"
+    "source": "Source: MTender API (OCDS 1.1) · Updated daily at 04:00 EEST",
+    "detail": {
+      "backToList": "← All procedures",
+      "loading": "Loading the record…",
+      "notFound": "Procedure not found.",
+      "notFoundHint": "Check the OCID or go back to the full list.",
+      "ocid": "OCID",
+      "openOnMtender": "Open on MTender ↗",
+      "downloadJson": "↓ OCDS JSON",
+      "shareLink": "Copy link",
+      "shareCopied": "Link copied ✓",
+      "section": {
+        "summary": "Summary",
+        "timeline": "Timeline",
+        "items": "Items & specs",
+        "parties": "Parties involved",
+        "bids": "Bids",
+        "awards": "Awards",
+        "contracts": "Contracts",
+        "documents": "Documents",
+        "milestones": "Milestones & amendments",
+        "flags": "Risk signals",
+        "raw": "Raw OCDS data"
+      },
+      "summary": {
+        "value": "Estimated value",
+        "bidders": "Bidders",
+        "awards": "Awards",
+        "contracts": "Contracts",
+        "items": "Items",
+        "duration": "Tender duration",
+        "days": "days",
+        "noData": "—"
+      },
+      "timeline": {
+        "published": "Published",
+        "tenderStart": "Tender start",
+        "tenderEnd": "Bidding closes",
+        "awardDate": "Award date",
+        "contractSigned": "Contract signed",
+        "contractEnd": "Contract end"
+      },
+      "items": {
+        "empty": "No item-level detail in the OCDS record.",
+        "description": "Description",
+        "classification": "CPV",
+        "quantity": "Qty",
+        "unit": "Unit",
+        "deliveryAddress": "Delivery address"
+      },
+      "parties": {
+        "empty": "No parties registered.",
+        "roles": {
+          "buyer": "Buyer",
+          "procuringEntity": "Contracting authority",
+          "payer": "Payer",
+          "supplier": "Supplier",
+          "tenderer": "Bidder",
+          "funder": "Funder",
+          "enquirer": "Enquirer",
+          "payee": "Payee",
+          "reviewBody": "Review body",
+          "interestedParty": "Interested party"
+        },
+        "identifier": "Tax ID",
+        "address": "Address",
+        "contact": "Contact"
+      },
+      "bids": {
+        "empty": "No individual bids published.",
+        "bidId": "Bid ID",
+        "tenderer": "Bidder",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "awards": {
+        "empty": "No awards recorded for this procedure.",
+        "awardId": "Award ID",
+        "awardDate": "Date",
+        "supplier": "Winning supplier",
+        "amount": "Award amount",
+        "status": "Status"
+      },
+      "contracts": {
+        "empty": "No contracts published.",
+        "contractId": "Contract ID",
+        "signed": "Signed",
+        "period": "Performance period",
+        "amount": "Contract value"
+      },
+      "documents": {
+        "empty": "No documents attached.",
+        "title": "Title",
+        "type": "Type",
+        "date": "Date",
+        "open": "Open ↗"
+      },
+      "milestones": {
+        "empty": "No milestones or amendments published.",
+        "milestone": "Milestone",
+        "amendment": "Amendment",
+        "date": "Date",
+        "status": "Status",
+        "rationale": "Rationale"
+      },
+      "flags": {
+        "none": "No risk signals detected for this procedure.",
+        "whatThis": "We automatically check for patterns associated with reduced competition or opacity. A flag does not imply illegality — it's an invitation to scrutiny.",
+        "directHighValue": "Direct procurement above 20M MDL",
+        "directHighValueDesc": "Large direct contracts skip open competition. Check the legal justification.",
+        "singleBidder": "Single bidder in competition",
+        "singleBidderDesc": "A single bidder in an awarded procedure suggests discouraged competition or an overly restrictive spec.",
+        "lowCompetition": "Low competition on contract > 20M",
+        "lowCompetitionDesc": "Two or fewer bidders on a high-value contract reduces price pressure."
+      },
+      "raw": {
+        "show": "Show full JSON",
+        "hide": "Hide JSON",
+        "note": "Raw OCDS 1.1 record as published by MTender. Everything above is derived from this object."
+      }
+    }
   },
   "about": {
     "kicker": "Platform / §04 · About",

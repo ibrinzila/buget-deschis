@@ -268,7 +268,127 @@
       "contracts": "contracte",
       "empty": "Încă nu există date despre câștigători pentru acest filtru."
     },
-    "source": "Sursă: MTender API (OCDS 1.1) · Actualizat zilnic la 04:00 EEST"
+    "source": "Sursă: MTender API (OCDS 1.1) · Actualizat zilnic la 04:00 EEST",
+    "detail": {
+      "backToList": "← Toate procedurile",
+      "loading": "Se încarcă dosarul…",
+      "notFound": "Procedura nu a fost găsită.",
+      "notFoundHint": "Verifică OCID-ul sau revino la lista completă.",
+      "ocid": "OCID",
+      "openOnMtender": "Deschide pe MTender ↗",
+      "downloadJson": "↓ JSON OCDS",
+      "shareLink": "Copiază linkul",
+      "shareCopied": "Link copiat ✓",
+      "section": {
+        "summary": "Sumar",
+        "timeline": "Cronologie",
+        "items": "Articole & specificații",
+        "parties": "Părți implicate",
+        "bids": "Oferte",
+        "awards": "Atribuire",
+        "contracts": "Contracte",
+        "documents": "Documente",
+        "milestones": "Etape & amendamente",
+        "flags": "Semnale de risc",
+        "raw": "Date brute OCDS"
+      },
+      "summary": {
+        "value": "Valoare estimată",
+        "bidders": "Ofertanți",
+        "awards": "Atribuiri",
+        "contracts": "Contracte",
+        "items": "Articole",
+        "duration": "Durată tender",
+        "days": "zile",
+        "noData": "—"
+      },
+      "timeline": {
+        "published": "Publicată",
+        "tenderStart": "Start tender",
+        "tenderEnd": "Închidere ofertare",
+        "awardDate": "Data atribuirii",
+        "contractSigned": "Contract semnat",
+        "contractEnd": "Sfârșit contract"
+      },
+      "items": {
+        "empty": "Nu sunt articole detaliate în înregistrarea OCDS.",
+        "description": "Descriere",
+        "classification": "CPV",
+        "quantity": "Cantitate",
+        "unit": "Unitate",
+        "deliveryAddress": "Adresă livrare"
+      },
+      "parties": {
+        "empty": "Nu sunt părți înregistrate.",
+        "roles": {
+          "buyer": "Cumpărător",
+          "procuringEntity": "Autoritate contractantă",
+          "payer": "Plătitor",
+          "supplier": "Furnizor",
+          "tenderer": "Ofertant",
+          "funder": "Finanțator",
+          "enquirer": "Solicitant clarificări",
+          "payee": "Beneficiar plată",
+          "reviewBody": "Organ de revizuire",
+          "interestedParty": "Parte interesată"
+        },
+        "identifier": "Cod fiscal",
+        "address": "Adresă",
+        "contact": "Contact"
+      },
+      "bids": {
+        "empty": "Nu sunt oferte individuale publicate.",
+        "bidId": "ID ofertă",
+        "tenderer": "Ofertant",
+        "amount": "Sumă",
+        "status": "Status"
+      },
+      "awards": {
+        "empty": "Procedura nu are atribuiri înregistrate.",
+        "awardId": "ID atribuire",
+        "awardDate": "Data",
+        "supplier": "Furnizor câștigător",
+        "amount": "Sumă atribuită",
+        "status": "Status"
+      },
+      "contracts": {
+        "empty": "Nu sunt contracte publicate.",
+        "contractId": "ID contract",
+        "signed": "Semnat",
+        "period": "Perioadă execuție",
+        "amount": "Valoare contract"
+      },
+      "documents": {
+        "empty": "Nu sunt documente atașate.",
+        "title": "Titlu",
+        "type": "Tip",
+        "date": "Dată",
+        "open": "Deschide ↗"
+      },
+      "milestones": {
+        "empty": "Nu sunt etape sau amendamente publicate.",
+        "milestone": "Etapă",
+        "amendment": "Amendament",
+        "date": "Dată",
+        "status": "Status",
+        "rationale": "Motiv"
+      },
+      "flags": {
+        "none": "Nu s-au detectat semnale de risc pentru această procedură.",
+        "whatThis": "Verificăm automat tiparele asociate cu competiție redusă sau lipsă de transparență. Semnalizarea nu implică ilegalitate — e o invitație la examinare.",
+        "directHighValue": "Achiziție directă peste 20 mil. MDL",
+        "directHighValueDesc": "Contracte directe de valoare mare evită competiția deschisă. Verificați justificarea legală.",
+        "singleBidder": "Ofertant unic în competiție",
+        "singleBidderDesc": "Un singur ofertant într-o procedură atribuită sugerează descurajarea concurenței sau caiet de sarcini prea restrictiv.",
+        "lowCompetition": "Concurență scăzută pe contract > 20 mil.",
+        "lowCompetitionDesc": "Maximum 2 ofertanți pe un contract de mare valoare reduce presiunea pe preț."
+      },
+      "raw": {
+        "show": "Arată JSON-ul complet",
+        "hide": "Ascunde JSON-ul",
+        "note": "Înregistrarea OCDS 1.1 brută, așa cum a fost publicată de MTender. Tot ce vezi mai sus e derivat din acest obiect."
+      }
+    }
   },
   "about": {
     "kicker": "Platformă / §04 · Despre",
